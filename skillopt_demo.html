@@ -3,777 +3,1002 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkillOpt — Code Reviewer Demo</title>
+<title>SkillOpt — Live Training</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #0d1117; --surface: #161b22; --surface2: #21262d;
-  --border: #30363d; --text: #e6edf3; --muted: #8b949e; --dim: #484f58;
-  --blue: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #e3b341; --purple: #bc8cff;
-  --green-bg: rgba(63,185,80,0.1); --red-bg: rgba(248,81,73,0.1);
-  --blue-bg: rgba(88,166,255,0.1); --yellow-bg: rgba(227,179,65,0.1);
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070d1a;
+  --surface:rgba(255,255,255,0.04);
+  --surface2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);
+  --text:#dce6f5;
+  --muted:#5a6a88;
+  --dim:#232f45;
+  --blue:#3b82f6;
+  --purple:#8b5cf6;
+  --amber:#f59e0b;
+  --green:#10b981;
+  --red:#ef4444;
 }
-body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:13px; line-height:1.5; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
 
-.header { padding:11px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--surface); }
-.header-left h1 { font-size:15px; font-weight:600; }
-.header-left p { font-size:11px; color:var(--muted); margin-top:1px; }
-.header-right { display:flex; align-items:center; gap:8px; }
-.source-link { font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:3px 8px; color:var(--blue); text-decoration:none; }
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Syne',system-ui,sans-serif;
+  font-size:13px;
+  line-height:1.5;
+  display:flex;
+  flex-direction:column;
+}
 
-.controls { padding:9px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; flex-shrink:0; }
-.ctrl-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
-.toggle { display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-.toggle-btn { padding:5px 14px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; font-family:inherit; transition:all .15s; }
-.toggle-btn.active { background:var(--blue); color:#fff; font-weight:500; }
-.toggle-btn.active.poor { background:var(--yellow); color:#0d1117; }
-.ctrl-desc { font-size:12px; color:var(--muted); }
+/* ── TOPBAR ──────────────────────────────────────────────────────────── */
+.topbar{
+  flex-shrink:0;
+  height:48px;
+  display:flex;
+  align-items:center;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  background:rgba(7,13,26,0.96);
+  position:relative;
+  overflow:hidden;
+}
+.topbar::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue) 0%,var(--purple) 40%,var(--amber) 70%,var(--green) 100%);
+}
+.topbar-logo{
+  padding:0 20px;
+  font-size:15px;font-weight:800;letter-spacing:-0.03em;
+  color:var(--text);flex-shrink:0;
+}
+.topbar-sub{
+  font-size:11px;color:var(--muted);font-weight:400;padding-right:20px;
+  border-right:1px solid var(--border);flex-shrink:0;
+}
 
-.score-row { padding:10px 24px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.score-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:7px; }
-.bars { display:flex; gap:8px; }
-.bar-group { flex:1; max-width:110px; display:flex; flex-direction:column; gap:4px; }
-.bar-track { height:40px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; cursor:pointer; transition:border-color .2s; }
-.bar-track:hover { border-color:var(--muted); }
-.bar-track.active { border-color:var(--blue); }
-.bar-track.active.poor { border-color:var(--yellow); }
-.bar-fill { width:100%; background:var(--blue); transition:height .4s cubic-bezier(.4,0,.2,1); border-radius:2px 2px 0 0; opacity:.85; }
-.bar-fill.poor { background:var(--yellow); }
-.bar-meta { display:flex; justify-content:space-between; }
-.bar-name { font-size:11px; color:var(--muted); }
-.bar-score { font-size:12px; font-weight:600; }
+/* score timeline */
+.score-timeline{
+  display:flex;align-items:center;gap:6px;
+  padding:0 20px;flex:1;overflow:hidden;
+}
+.tl-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;}
+.tl-bars{display:flex;align-items:flex-end;gap:5px;height:28px;flex:1;max-width:320px;}
+.tl-bar{
+  flex:1;max-width:70px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+  border-radius:3px;
+  height:100%;
+  display:flex;align-items:flex-end;overflow:hidden;
+  position:relative;cursor:pointer;
+  transition:border-color .2s;
+}
+.tl-bar.active{border-color:rgba(59,130,246,0.5);}
+.tl-fill{
+  width:100%;border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,#60a5fa,#1d4ed8);
+  transition:height .6s cubic-bezier(.4,0,.2,1);
+}
+.tl-pct{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:10px;font-weight:700;font-family:'DM Mono',monospace;
+  color:#fff;text-shadow:0 1px 3px #000;
+  pointer-events:none;
+}
+.tl-epoch-labels{display:flex;gap:5px;margin-top:2px;}
+.tl-epoch-lbl{flex:1;max-width:70px;font-size:9px;color:var(--muted);text-align:center;}
 
-.tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; padding:0 24px; }
-.tab { padding:9px 16px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); cursor:pointer; font-size:13px; font-family:inherit; transition:all .15s; margin-bottom:-1px; }
-.tab:hover { color:var(--text); }
-.tab.active { color:var(--text); border-bottom-color:var(--blue); }
-.tab.active.poor { border-bottom-color:var(--yellow); }
+.topbar-controls{
+  display:flex;align-items:center;gap:10px;
+  padding:0 20px;border-left:1px solid var(--border);flex-shrink:0;
+}
+.ctrl-group{display:flex;align-items:center;gap:6px;}
+.ctrl-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.ctrl-val{
+  font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
+  color:var(--amber);min-width:16px;text-align:center;
+}
+input[type=range]{
+  width:60px;height:3px;appearance:none;
+  background:var(--border);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--amber);cursor:pointer;
+}
+.run-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 16px;border-radius:20px;
+  background:var(--blue);border:none;
+  color:#fff;font-size:12px;font-weight:600;
+  font-family:'Syne',sans-serif;cursor:pointer;
+  transition:opacity .2s;
+  flex-shrink:0;
+}
+.run-btn:hover{opacity:.85}
+.run-btn:disabled{opacity:.4;cursor:not-allowed}
+.run-btn.running{background:var(--red)}
+.status-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  flex-shrink:0;transition:background .3s;
+}
+.status-dot.live{background:var(--green);animation:blink 1.2s ease-in-out infinite}
+.status-dot.done{background:var(--green);animation:none}
+.status-dot.error{background:var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-.panels { flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; overflow:hidden; min-height:0; }
-.panel { border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
-.panel:last-child { border-right:none; }
-.panel-hd { padding:9px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
-.panel-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
-.panel-body { flex:1; overflow-y:auto; }
+/* ── PHASE BAR ───────────────────────────────────────────────────────── */
+.phase-bar{
+  flex-shrink:0;
+  height:32px;
+  display:flex;align-items:center;
+  padding:0 20px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.01);
+  gap:0;
+  overflow:hidden;
+}
+.phase-step{
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;height:100%;
+  border-right:1px solid var(--border);
+  font-size:11px;font-weight:600;letter-spacing:.08em;
+  color:var(--muted);
+  transition:all .3s;
+  flex-shrink:0;
+}
+.phase-step:first-child{padding-left:0}
+.phase-step .step-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--dim);
+  flex-shrink:0;transition:all .3s;
+}
+.phase-step.active{color:var(--text)}
+.phase-step.active.rollout{color:var(--blue);}
+.phase-step.active.rollout .step-dot{background:var(--blue);box-shadow:0 0 6px var(--blue);}
+.phase-step.active.reflect{color:var(--purple);}
+.phase-step.active.reflect .step-dot{background:var(--purple);box-shadow:0 0 6px var(--purple);}
+.phase-step.active.select{color:var(--amber);}
+.phase-step.active.select .step-dot{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.phase-step.active.gate{color:var(--green);}
+.phase-step.active.gate .step-dot{background:var(--green);box-shadow:0 0 6px var(--green);}
+.phase-step.done .step-dot{background:var(--muted)}
+.phase-desc{margin-left:auto;font-size:11px;color:var(--muted);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.epoch-badge{
+  font-size:10px;padding:2px 8px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted);font-weight:600;margin-left:12px;flex-shrink:0;
+}
 
-.diff-legend { display:flex; gap:12px; padding:6px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
-.dl-item { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); }
-.dl-dot { width:8px; height:8px; border-radius:2px; }
-.skill-doc { font-family:'SF Mono','Cascadia Code','Fira Mono',monospace; font-size:11.5px; line-height:1.8; padding:12px 14px; }
-.sl { display:block; padding:0 6px; border-radius:3px; white-space:pre-wrap; position:relative; }
-.sl.h1 { color:var(--blue); font-weight:700; margin-top:4px; }
-.sl.h2 { color:var(--purple); font-weight:600; margin-top:6px; }
-.sl.added { background:rgba(63,185,80,.12); color:var(--green); padding-left:18px; }
-.sl.added::before { content:'+'; position:absolute; left:4px; color:var(--green); font-weight:700; }
+/* ── MAIN PANELS ─────────────────────────────────────────────────────── */
+.panels{
+  flex:1;min-height:0;
+  display:grid;grid-template-columns:300px 1fr 320px;
+}
+.panel{
+  display:flex;flex-direction:column;overflow:hidden;
+  border-right:1px solid var(--border);
+}
+.panel:last-child{border-right:none}
+.panel-hd{
+  flex-shrink:0;
+  padding:8px 14px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-title{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);
+}
+.panel-badge{
+  font-size:10px;padding:1px 7px;border-radius:10px;
+  font-weight:600;font-family:'DM Mono',monospace;
+}
+.panel-body{flex:1;overflow-y:auto;overflow-x:hidden}
+.panel-body::-webkit-scrollbar{width:3px}
+.panel-body::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
 
-.trace { border-bottom:1px solid var(--border); padding:10px 14px; }
-.trace:hover { background:var(--surface); }
-.trace-top { display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap; }
-.badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:3px; letter-spacing:.05em; flex-shrink:0; }
-.badge.pass { background:var(--green-bg); color:var(--green); }
-.badge.fail { background:var(--red-bg); color:var(--red); }
-.badge.sm { background:rgba(88,166,255,.12); color:var(--blue); }
-.badge.crit { background:rgba(248,81,73,.12); color:var(--red); font-size:9px; }
-.badge.mod { background:rgba(227,179,65,.12); color:var(--yellow); font-size:9px; }
-.trace-q { font-size:12px; font-weight:500; }
-.trace-code { font-family:'SF Mono',monospace; font-size:10.5px; background:var(--surface2); border:1px solid var(--border); border-left:2px solid var(--dim); padding:5px 8px; border-radius:4px; color:var(--muted); margin-bottom:4px; line-height:1.6; white-space:pre; overflow-x:auto; }
-.trace-review { font-size:11.5px; margin-bottom:3px; line-height:1.5; }
-.trace-review.fail { color:rgba(248,81,73,.8); font-style:italic; }
-.trace-review.pass { color:rgba(63,185,80,.9); }
-.trace-why { font-size:10.5px; color:var(--dim); font-style:italic; }
+/* skill panel */
+.skill-doc{
+  font-family:'DM Mono',monospace;
+  font-size:11px;line-height:1.9;
+  padding:12px 0;
+}
+.sl{
+  display:flex;align-items:baseline;
+  padding:0 4px 0 0;
+  transition:background .4s;
+}
+.sl-num{
+  width:30px;flex-shrink:0;
+  text-align:right;padding-right:10px;
+  font-size:9px;color:var(--dim);user-select:none;
+}
+.sl-text{flex:1;padding-right:8px;white-space:pre-wrap;word-break:break-word;}
+.sl.h1 .sl-text{color:#60a5fa;font-weight:700}
+.sl.h2 .sl-text{color:#a78bfa;font-weight:600}
+.sl.added{
+  background:rgba(16,185,129,0.1);
+  border-left:2px solid rgba(16,185,129,0.5);
+  animation:fadeIn .5s ease;
+}
+.sl.added .sl-text{color:#34d399;font-weight:500}
+.sl.added .sl-num{color:rgba(52,211,153,0.4)}
+.added-prefix{color:var(--green);font-weight:700;margin-right:2px}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
 
-.opt-sec { padding:11px 14px; border-bottom:1px solid var(--border); }
-.opt-sec-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:7px; }
-.opt-box { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:10px; font-size:12px; line-height:1.6; }
-.edit-card { background:var(--surface2); border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-bottom:6px; }
-.edit-hd { padding:6px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); background:var(--surface); }
-.op-tag { font-size:10px; font-weight:700; padding:1px 5px; border-radius:3px; letter-spacing:.05em; }
-.op-tag.append { background:var(--green-bg); color:var(--green); }
-.op-tag.replace { background:var(--blue-bg); color:var(--blue); }
-.edit-body { font-family:'SF Mono',monospace; font-size:11px; padding:8px 10px; line-height:1.5; }
-.gate { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:6px; }
-.gate.ok { background:var(--green-bg); border:1px solid rgba(63,185,80,.25); color:var(--green); }
-.gate.done { background:var(--blue-bg); border:1px solid rgba(88,166,255,.25); color:var(--blue); }
-.gate-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
-.gate-main { font-size:13px; font-weight:600; }
-.gate-sub { font-size:11px; opacity:.8; margin-top:1px; }
-.warn-box { margin:12px; padding:11px; background:rgba(227,179,65,.08); border:1px solid rgba(227,179,65,.2); border-radius:6px; font-size:12px; color:var(--yellow); line-height:1.6; }
+/* diff legend */
+.diff-legend{
+  display:flex;gap:10px;
+  padding:5px 14px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,0.01);flex-shrink:0;
+}
+.dl-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.dl-dot{width:7px;height:7px;border-radius:2px}
 
-::-webkit-scrollbar { width:5px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+/* trace cards */
+.trace{
+  padding:11px 14px;border-bottom:1px solid var(--border);
+  animation:slideIn .25s ease;
+}
+.trace:hover{background:rgba(255,255,255,0.02)}
+@keyframes slideIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.trace-top{display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.badge{
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+  letter-spacing:.06em;flex-shrink:0;
+}
+.badge.caught{background:rgba(16,185,129,0.15);color:var(--green)}
+.badge.missed{background:rgba(239,68,68,0.15);color:var(--red)}
+.badge.crit{background:rgba(239,68,68,0.1);color:var(--red);font-size:8px}
+.badge.mod{background:rgba(245,158,11,0.1);color:var(--amber);font-size:8px}
+.badge.ok{background:rgba(16,185,129,0.1);color:var(--green);font-size:8px}
+.badge.running{background:rgba(59,130,246,0.1);color:var(--blue);font-size:9px}
+.trace-title{font-size:12px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trace-code{
+  font-family:'DM Mono',monospace;font-size:10px;
+  background:#030810;border:1px solid var(--border);
+  border-left:2px solid var(--dim);
+  border-radius:5px;padding:7px 10px;
+  margin-bottom:6px;line-height:1.7;
+  white-space:pre;overflow-x:auto;
+  counter-reset:line;
+}
+.trace-code .ln::before{
+  counter-increment:line;content:counter(line);
+  display:inline-block;width:18px;
+  color:var(--dim);text-align:right;margin-right:10px;
+  user-select:none;font-size:9px;
+}
+.trace-review{font-size:11.5px;line-height:1.6;margin-bottom:3px;color:rgba(220,230,245,0.8)}
+.trace-review.miss{color:rgba(239,68,68,0.7);font-style:italic}
+.trace-review.ok{color:rgba(16,185,129,0.85)}
+.trace-why{font-size:10px;color:var(--muted);font-style:italic}
+
+/* val trace (smaller) */
+.val-trace{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 14px;border-bottom:1px solid var(--border);
+  font-size:11px;animation:slideIn .2s ease;
+}
+.val-trace-title{flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* optimizer panel */
+.opt-sec{padding:10px 14px;border-bottom:1px solid var(--border);}
+.opt-sec-title{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;
+}
+.stream-box{
+  font-size:12px;line-height:1.65;
+  color:rgba(220,230,245,0.85);
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:7px;
+  padding:10px 12px;min-height:48px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  white-space:pre-wrap;word-break:break-word;
+}
+.cursor{
+  display:inline-block;width:7px;height:12px;
+  background:var(--purple);border-radius:1px;
+  animation:cursor-blink .8s step-end infinite;vertical-align:middle;
+}
+@keyframes cursor-blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.edit-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(16,185,129,0.2);
+  border-radius:7px;overflow:hidden;margin-bottom:6px;
+  animation:fadeIn .3s ease;
+}
+.edit-hd{
+  padding:6px 10px;display:flex;align-items:center;gap:7px;
+  background:rgba(16,185,129,0.05);border-bottom:1px solid rgba(16,185,129,0.15);
+}
+.op-tag{
+  font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;
+  letter-spacing:.06em;
+  background:rgba(16,185,129,0.15);color:var(--green);
+}
+.edit-body{
+  font-family:'DM Mono',monospace;font-size:10.5px;
+  padding:8px 10px;line-height:1.6;color:rgba(220,230,245,0.75);
+  white-space:pre-wrap;word-break:break-word;
+}
+
+/* gate */
+.gate-block{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px;border-radius:8px;
+  animation:fadeIn .4s ease;
+}
+.gate-block.accepted{
+  background:rgba(16,185,129,0.07);
+  border:1px solid rgba(16,185,129,0.25);
+}
+.gate-block.rejected{
+  background:rgba(239,68,68,0.07);
+  border:1px solid rgba(239,68,68,0.2);
+}
+.gate-icon{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+}
+.gate-block.accepted .gate-icon{
+  background:rgba(16,185,129,0.15);
+  animation:pulse 2s ease-in-out infinite;
+}
+.gate-block.rejected .gate-icon{background:rgba(239,68,68,0.15)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.3)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+.gate-main{font-size:13px;font-weight:700;margin-bottom:2px;}
+.gate-block.accepted .gate-main{color:var(--green)}
+.gate-block.rejected .gate-main{color:var(--red)}
+.gate-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.gate-scores{
+  display:flex;gap:12px;margin-top:8px;
+}
+.gate-score-item{
+  display:flex;flex-direction:column;gap:2px;
+}
+.gate-score-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.gate-score-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;}
+
+/* empty state */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:8px;color:var(--muted);padding:20px;text-align:center;
+}
+.empty-icon{font-size:28px;opacity:.3}
+.empty-text{font-size:12px;line-height:1.6}
+
+/* done banner */
+.done-banner{
+  padding:12px 14px;
+  background:rgba(16,185,129,0.08);
+  border:1px solid rgba(16,185,129,0.2);
+  border-radius:8px;margin:10px 14px;
+  font-size:12px;line-height:1.6;
+  animation:fadeIn .5s ease;
+}
+.done-banner strong{color:var(--green)}
+
+/* error */
+.error-banner{
+  padding:10px 14px;
+  background:rgba(239,68,68,0.08);
+  border:1px solid rgba(239,68,68,0.2);
+  border-radius:7px;margin:10px 14px;
+  font-size:11.5px;line-height:1.6;color:var(--red);
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <h1>SkillOpt — Code Reviewer Demo</h1>
-    <p>Starting from a real skill on skillsmp.com &nbsp;·&nbsp; frozen model, only skill.md evolves</p>
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">SkillOpt</div>
+  <div class="topbar-sub">live training</div>
+
+  <div class="score-timeline" id="score-timeline">
+    <div class="tl-label">val score</div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div class="tl-bars" id="tl-bars">
+        <!-- filled by JS -->
+      </div>
+      <div class="tl-epoch-labels" id="tl-labels"></div>
+    </div>
   </div>
-  <div class="header-right">
-    <a class="source-link" href="https://skillsmp.com/" target="_blank">skillsmp.com</a>
-    <a class="source-link" href="https://github.com/microsoft/SkillOpt" target="_blank">microsoft/SkillOpt</a>
+
+  <div class="topbar-controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">LR</span>
+      <input type="range" id="lr-slider" min="1" max="5" value="3"
+             oninput="document.getElementById('lr-val').textContent=this.value">
+      <span class="ctrl-val" id="lr-val">3</span>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Epochs</span>
+      <input type="range" id="ep-slider" min="1" max="6" value="4"
+             oninput="document.getElementById('ep-val').textContent=this.value">
+      <span class="ctrl-val" id="ep-val">4</span>
+    </div>
+    <div class="status-dot" id="status-dot"></div>
+    <button class="run-btn" id="run-btn" onclick="handleRun()">▶ Run Training</button>
   </div>
 </div>
 
-<div class="controls">
-  <span class="ctrl-label">Dataset</span>
-  <div class="toggle">
-    <button class="toggle-btn active" id="btn-good" onclick="setScenario('good')">Diverse (good)</button>
-    <button class="toggle-btn" id="btn-poor" onclick="setScenario('poor')">Narrow (poor)</button>
+<!-- PHASE BAR -->
+<div class="phase-bar">
+  <div class="phase-step rollout" id="ps-rollout">
+    <div class="step-dot"></div>ROLLOUT
   </div>
-  <span class="ctrl-desc" id="ctrl-desc">8 PRs: SQL injection, hardcoded secrets, resource leaks, race conditions, command injection, logic errors</span>
+  <div class="phase-step reflect" id="ps-reflect">
+    <div class="step-dot"></div>REFLECT
+  </div>
+  <div class="phase-step select" id="ps-select">
+    <div class="step-dot"></div>SELECT
+  </div>
+  <div class="phase-step gate" id="ps-gate">
+    <div class="step-dot"></div>GATE
+  </div>
+  <div class="phase-desc" id="phase-desc">Press Run Training to start</div>
+  <div class="epoch-badge" id="epoch-badge" style="display:none"></div>
 </div>
 
-<div class="score-row">
-  <div class="score-lbl">Does the reviewer catch the critical bug? (validation accuracy)</div>
-  <div class="bars" id="bars"></div>
-</div>
-
-<div class="tabs" id="tabs"></div>
-
+<!-- PANELS -->
 <div class="panels">
+
+  <!-- LEFT: skill.md -->
   <div class="panel">
     <div class="panel-hd">
       <span class="panel-title">skill.md</span>
-      <span style="font-size:11px;color:var(--dim);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:2px 7px;">lr = 3 edits/step</span>
+      <span class="panel-badge" id="skill-badge"
+            style="background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);">
+        initial
+      </span>
     </div>
     <div class="diff-legend">
-      <div class="dl-item"><div class="dl-dot" style="background:var(--green)"></div>Added this epoch</div>
-      <div class="dl-item"><div class="dl-dot" style="background:var(--dim)"></div>Unchanged</div>
+      <div class="dl-item">
+        <div class="dl-dot" style="background:var(--green)"></div>added this epoch
+      </div>
+      <div class="dl-item">
+        <div class="dl-dot" style="background:var(--dim)"></div>unchanged
+      </div>
     </div>
-    <div class="panel-body" id="skill-body"></div>
+    <div class="panel-body" id="skill-body">
+      <div class="empty">
+        <div class="empty-icon">📄</div>
+        <div class="empty-text">skill.md will appear here when training starts</div>
+      </div>
+    </div>
   </div>
 
+  <!-- CENTER: traces -->
   <div class="panel">
     <div class="panel-hd">
-      <span class="panel-title">PRs Reviewed This Epoch</span>
-      <span class="badge sm" id="trace-badge"></span>
+      <span class="panel-title">PRs Reviewed</span>
+      <span class="panel-badge" id="trace-badge"
+            style="background:var(--surface);border:1px solid var(--border);color:var(--muted);">
+        –/–
+      </span>
     </div>
-    <div class="panel-body" id="traces-body"></div>
+    <div class="panel-body" id="traces-body">
+      <div class="empty">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-text">Agent reviews will stream in here as each PR is processed</div>
+      </div>
+    </div>
   </div>
 
+  <!-- RIGHT: optimizer + gate -->
   <div class="panel">
-    <div class="panel-hd"><span class="panel-title">Optimizer &amp; Gate</span></div>
-    <div class="panel-body" id="opt-body"></div>
+    <div class="panel-hd">
+      <span class="panel-title">Optimizer &amp; Gate</span>
+    </div>
+    <div class="panel-body" id="opt-body">
+      <div class="empty">
+        <div class="empty-icon">⚙️</div>
+        <div class="empty-text">Optimizer analysis and gate decisions will appear here</div>
+      </div>
+    </div>
   </div>
-</div>
+
+</div><!-- /panels -->
 
 <script>
-const D = {
-  good: {
-    desc: "8 PRs across SQL injection, hardcoded secrets, resource leaks, race conditions, command injection, and logic errors",
-    scores: [0.25, 0.55, 0.75, 0.88],
-    epochs: [
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-        ],
-        traces: [
-          {sev:"CRIT", pass:false,
-           q:"auth.py — user login query",
-           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
-           review:"The function queries the database for authentication. Works correctly for standard use.",
-           why:"Missed SQL injection — user input interpolated directly into query string"},
-          {sev:"CRIT", pass:false,
-           q:"stripe.py — payment API call",
-           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
-           review:"Makes an authenticated request to the Stripe API. Standard payment integration pattern.",
-           why:"Missed hardcoded production API key — will leak in version control"},
-          {sev:"CRIT", pass:false,
-           q:"config.py — JSON file reader",
-           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
-           review:"Reads and parses a JSON config file. Works correctly.",
-           why:"Missed resource leak — file handle never closed if json.load() raises"},
-          {sev:"CRIT", pass:false,
-           q:"metrics.py — request counter",
-           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
-           review:"Tracks incoming request count using a global counter. Works for usage monitoring.",
-           why:"Missed race condition — += not atomic under concurrent access"},
-          {sev:"CRIT", pass:false,
-           q:"utils.py — host ping check",
-           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
-           review:"Network utility to check if a host is reachable. Standard ping implementation.",
-           why:"Missed command injection — unsanitized host executes arbitrary shell commands"},
-          {sev:"MOD", pass:true,
-           q:"list_utils.py — last N items",
-           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one: slice end should be len(items), not len(items)+1. Returns n+1 items.",
-           why:"Caught — logic error is straightforward to spot"},
-          {sev:"OK", pass:true,
-           q:"math.py — safe division",
-           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
-           review:"No issues. Zero-division guard is correct and raises an appropriate exception.",
-           why:"Correct — no bugs present"},
-          {sev:"MOD", pass:false,
-           q:"users.py — profile name lookup",
-           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
-           review:"Returns the user's display name trimmed of whitespace. Straightforward lookup.",
-           why:"Missed KeyError risk — no guard if 'profile' or 'name' key is absent"},
-        ],
-        analysis: "6 of 8 reviews missed critical issues.\n\nDominant pattern: security vulnerabilities consistently skipped — SQL injection, hardcoded API key, command injection, and resource leak are all 'invisible' to the current skill.\n\nThe 'Security vulnerabilities' bullet in the skill is too vague. The model needs explicit patterns to match against — not just a category name.\n\nProposing 3 targeted security rules. Learning rate = 3.",
-        edits: [
-          {op:"append", text:"## Security — Flag Immediately\n- SQL injection: user input in f-string or + concatenated into a query → require parameterized queries\n- Hardcoded secrets: API keys, passwords, tokens as string literals → move to environment variables\n- Command injection: user input passed to subprocess with shell=True → use list form, no shell=True\n- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → flag as RCE risk"},
-        ],
-        gate_ok:true, gate_delta:"+30%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Security — Flag Immediately", c:"h2", new:true},
-          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li", new:true},
-          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li", new:true},
-          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li", new:true},
-          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li", new:true},
-        ],
-        traces: [
-          {sev:"CRIT", pass:true,
-           q:"auth.py — user login query",
-           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
-           review:"CRITICAL: SQL injection. User input interpolated into query — attacker can inject `' OR '1'='1`. Fix: db.execute('SELECT * FROM users WHERE name=? AND pass=?', (user, pwd))",
-           why:"Caught — SQL injection rule matched"},
-          {sev:"CRIT", pass:true,
-           q:"stripe.py — payment API call",
-           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
-           review:"CRITICAL: Hardcoded production API key in source. Will be committed to version control. Fix: STRIPE_KEY = os.environ['STRIPE_KEY']",
-           why:"Caught — hardcoded secrets rule matched"},
-          {sev:"CRIT", pass:false,
-           q:"config.py — JSON file reader",
-           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
-           review:"Reads and parses a JSON config file. Works correctly.",
-           why:"Still missed — no resource management rule yet"},
-          {sev:"CRIT", pass:false,
-           q:"metrics.py — request counter",
-           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
-           review:"Tracks incoming request count. Works for monitoring.",
-           why:"Still missed — no concurrency rule yet"},
-          {sev:"CRIT", pass:true,
-           q:"utils.py — host ping check",
-           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
-           review:"CRITICAL: Command injection. Unsanitized host passed to shell. Attacker can pass '8.8.8.8; rm -rf /'. Fix: subprocess.run(['ping', '-c', '1', host], capture_output=True)",
-           why:"Caught — command injection rule matched"},
-          {sev:"MOD", pass:true,
-           q:"list_utils.py — last N items",
-           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end. Returns n+1 items instead of n.",
-           why:"Still caught"},
-          {sev:"OK", pass:true,
-           q:"math.py — safe division",
-           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
-           review:"No issues. Correct guard.",
-           why:"Correct"},
-          {sev:"MOD", pass:false,
-           q:"users.py — profile name lookup",
-           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
-           review:"Returns the user's display name. Clean and readable.",
-           why:"Still missed — no defensive access rule yet"},
-        ],
-        analysis: "Score improved 25% → 55%. Injection patterns (SQL, command) and hardcoded secrets now consistently caught.\n\nThree failure types remain:\n\n1. Resource leak (1 case): file opened without context manager — handle leaks on exception.\n\n2. Race condition (1 case): shared global counter incremented across threads without a lock.\n\n3. Defensive access (1 case): chained dict access with no guard against missing keys.\n\nAll three are distinct from security injections. Proposing 3 targeted rules.",
-        edits: [
-          {op:"append", text:"## Resource Management\n- File handles opened without 'with' context manager → flag as resource leak\n  Fix: with open(path) as f: ...\n- DB connections not closed in a finally block → flag"},
-          {op:"append", text:"## Concurrency\n- Shared mutable state (globals, class attrs) modified across threads → flag as race condition\n- Non-atomic ops (+=, -=, list.append) on shared vars without threading.Lock() → flag\n  Fix: _lock = threading.Lock() and 'with _lock: ...'"},
-          {op:"append", text:"## Defensive Access\n- Chained dict access (a['b']['c']) with no key guards → flag potential KeyError\n  Fix: user.get('profile', {}).get('name', '') or explicit try/except"},
-        ],
-        gate_ok:true, gate_delta:"+20%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Security — Flag Immediately", c:"h2"},
-          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li"},
-          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li"},
-          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li"},
-          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li"},
-          {t:""},
-          {t:"## Resource Management", c:"h2", new:true},
-          {t:"- File handles opened without 'with' context manager → resource leak", c:"li", new:true},
-          {t:"  Fix: with open(path) as f: ...", c:"li", new:true},
-          {t:"- DB connections not closed in finally block → flag", c:"li", new:true},
-          {t:""},
-          {t:"## Concurrency", c:"h2", new:true},
-          {t:"- Shared mutable state modified across threads → flag as race condition", c:"li", new:true},
-          {t:"- Non-atomic ops (+=, -=) on shared vars without threading.Lock() → flag", c:"li", new:true},
-          {t:""},
-          {t:"## Defensive Access", c:"h2", new:true},
-          {t:"- Chained dict access a['b']['c'] with no key guards → potential KeyError", c:"li", new:true},
-          {t:"  Fix: .get() with defaults or try/except", c:"li", new:true},
-        ],
-        traces: [
-          {sev:"CRIT", pass:true, q:"auth.py — user login query",
-           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
-           review:"CRITICAL: SQL injection via f-string. Use parameterized queries.",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"stripe.py — payment API call",
-           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
-           review:"CRITICAL: Hardcoded production key. Use os.environ['STRIPE_KEY'].",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"config.py — JSON file reader",
-           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
-           review:"Resource leak: file handle never closed. If json.load() raises, the handle leaks. Fix: with open(path) as f: return json.load(f)",
-           why:"Caught — resource management rule matched"},
-          {sev:"CRIT", pass:true, q:"metrics.py — request counter",
-           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
-           review:"Race condition: request_count += 1 is not atomic. Concurrent calls lose increments. Fix: add _lock = threading.Lock() and wrap with 'with _lock:'",
-           why:"Caught — concurrency rule matched"},
-          {sev:"CRIT", pass:true, q:"utils.py — host ping check",
-           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
-           review:"CRITICAL: Command injection. Fix: subprocess.run(['ping', '-c', '1', host], capture_output=True)",
-           why:"Caught"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
-           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end — returns n+1 items. Fix: items[-n:] or items[len(items)-n:]",
-           why:"Caught"},
-          {sev:"OK", pass:true, q:"math.py — safe division",
-           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
-           review:"No issues. Correct.",
-           why:"Correct"},
-          {sev:"MOD", pass:true, q:"users.py — profile name lookup",
-           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
-           review:"KeyError risk: 'profile' or 'name' may be missing. Fix: user.get('profile', {}).get('name', '').strip()",
-           why:"Caught — defensive access rule matched"},
-        ],
-        analysis: "All 8 training PRs now reviewed correctly. Validation score: 75%.\n\nRemaining validation failures are subtle patterns not yet in the skill:\n- Timing attack: == comparison for secret tokens instead of hmac.compare_digest()\n- TOCTOU: os.path.exists() check before open() in concurrent code — not atomic\n\nProposing 2 refinement edits.",
-        edits: [
-          {op:"append", text:"- Timing attack: == comparison for secrets/tokens → flag, use hmac.compare_digest()"},
-          {op:"append", text:"- TOCTOU: os.path.exists() check before open() in concurrent context → not atomic, use try/except FileNotFoundError instead"},
-        ],
-        gate_ok:true, gate_delta:"+13%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Security — Flag Immediately", c:"h2"},
-          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li"},
-          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li"},
-          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li"},
-          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li"},
-          {t:"- Timing attack: == for secret comparison → use hmac.compare_digest()", c:"li", new:true},
-          {t:"- TOCTOU: os.path.exists() before open() in concurrent code → use try/except instead", c:"li", new:true},
-          {t:""},
-          {t:"## Resource Management", c:"h2"},
-          {t:"- File handles opened without 'with' context manager → resource leak", c:"li"},
-          {t:"  Fix: with open(path) as f: ...", c:"li"},
-          {t:"- DB connections not closed in finally block → flag", c:"li"},
-          {t:""},
-          {t:"## Concurrency", c:"h2"},
-          {t:"- Shared mutable state modified across threads → flag as race condition", c:"li"},
-          {t:"- Non-atomic ops (+=, -=) on shared vars without threading.Lock() → flag", c:"li"},
-          {t:""},
-          {t:"## Defensive Access", c:"h2"},
-          {t:"- Chained dict access a['b']['c'] with no key guards → potential KeyError", c:"li"},
-          {t:"  Fix: .get() with defaults or try/except", c:"li"},
-        ],
-        traces: [
-          {sev:"CRIT", pass:true, q:"auth.py — user login query",
-           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
-           review:"CRITICAL: SQL injection via f-string. Use parameterized queries.",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"stripe.py — payment API call",
-           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
-           review:"CRITICAL: Hardcoded production key in source. Use env var.",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"config.py — JSON file reader",
-           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
-           review:"Resource leak: use 'with open(path) as f:'",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"metrics.py — request counter",
-           code:`request_count = 0\ndef handle_request():\n    global request_count\n    request_count += 1`,
-           review:"Race condition: += not atomic. Add threading.Lock().",
-           why:"Caught"},
-          {sev:"CRIT", pass:true, q:"utils.py — host ping check",
-           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
-           review:"CRITICAL: Command injection. Use list form without shell=True.",
-           why:"Caught"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
-           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end. Fix: items[-n:]",
-           why:"Caught"},
-          {sev:"OK", pass:true, q:"math.py — safe division",
-           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
-           review:"No issues.",
-           why:"Correct"},
-          {sev:"MOD", pass:true, q:"users.py — profile name lookup",
-           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
-           review:"KeyError risk. Fix: user.get('profile', {}).get('name', '').strip()",
-           why:"Caught"},
-        ],
-        analysis: "All 8 training PRs correct. Validation score: 88%.\n\nRemaining 12% gap represents highly context-dependent patterns (e.g. timing attack in non-obvious comparison contexts, library-specific deserialization) that require broader training coverage.\n\nTraining complete. best_skill.md exported — ready to deploy to any code review agent.",
-        edits:[], gate_ok:true, gate_delta:null, final:true,
-      },
-    ]
-  },
+// ── State ──────────────────────────────────────────────────────────────────
+let es = null;           // EventSource
+let running = false;
+let currentEpoch = 0;
+let totalEpochs = 4;
+let currentLR = 3;
+let traceCount = 0;
+let tracePass = 0;
+let currentSkillLines = [];   // [{text, added}]
+let epochHistory = [];        // [{val_score}]
+let streamBuffer = '';        // current optimizer stream text
+let reflectComplete = false;
 
-  poor: {
-    desc: "8 PRs — all simple Python logic errors. No security, resource, or threading patterns in training",
-    scores: [0.25, 0.45, 0.47, 0.48],
-    epochs: [
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-        ],
-        traces: [
-          {sev:"MOD", pass:false, q:"parity.py — is_even() check",
-           code:`def is_even(n):\n    return n % 2 == 1  # always True for odd numbers`,
-           review:"Checks if a number is even using modulo. Looks correct.",
-           why:"Missed inverted condition — n%2==1 returns True for ODD numbers"},
-          {sev:"MOD", pass:false, q:"search.py — find_max() loop",
-           code:`def find_max(items):\n    max_val = items[0]\n    for i in range(1, len(items)+1):  # +1 causes IndexError on last element\n        if items[i] > max_val: max_val = items[i]\n    return max_val`,
-           review:"Iterates through items to find the maximum. Standard loop pattern.",
-           why:"Missed off-by-one — range overshoots, IndexError on last iteration"},
-          {sev:"MOD", pass:true, q:"math.py — factorial base case",
-           code:`def factorial(n):\n    if n == 0: return 0  # wrong: must be 1\n    return n * factorial(n-1)`,
-           review:"Base case returns 0 but should return 1 — factorial(0)=1 by definition. All results will be 0.",
-           why:"Caught — inverted base case is obvious"},
-          {sev:"MOD", pass:false, q:"strings.py — vowel counter",
-           code:`def count_vowels(s):\n    return sum(1 for c in s if c in 'aeiou')  # misses uppercase`,
-           review:"Counts vowels using a generator expression. Elegant and readable.",
-           why:"Missed case sensitivity — 'Hello' returns 1 instead of 2"},
-          {sev:"MOD", pass:false, q:"sorting.py — is_sorted() check",
-           code:`def is_sorted(items):\n    for i in range(len(items)-1):\n        if items[i] > items[i+1]:\n            return True  # wrong: should return False on violation\n    return False`,
-           review:"Iterates to check sort order. Logic looks reasonable.",
-           why:"Missed inverted return — returns True when out-of-order found"},
-          {sev:"MOD", pass:true, q:"stats.py — average() guard",
-           code:`def average(nums):\n    return sum(nums) / len(nums)  # ZeroDivisionError if empty`,
-           review:"Edge case: ZeroDivisionError when nums is empty. Add guard: if not nums: return None",
-           why:"Caught — empty input edge case spotted"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
-           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end. Returns n+1 items instead of n.",
-           why:"Caught"},
-          {sev:"MOD", pass:false, q:"text.py — word reverser",
-           code:`def reverse_words(sentence):\n    words = sentence.split()\n    result = []\n    for i in range(len(words)):  # should iterate in reverse\n        result.append(words[i])\n    return ' '.join(result)`,
-           review:"Reverses words in a sentence using a loop. Looks correct.",
-           why:"Missed that loop goes forward not backward — returns unchanged sentence"},
-        ],
-        analysis: "5 of 8 missed. Failures are scattered across different logic error types:\n- Inverted conditions (2 cases)\n- Off-by-one in loop range (1 case)\n- Missing case sensitivity (1 case)\n- Loop direction wrong (1 case)\n\nAll 8 PRs are simple logic issues. Zero security, resource, or concurrency patterns appear in this batch — the optimizer cannot learn those rules from what it sees.\n\nProposing narrow logic checklist edits.",
-        edits: [
-          {op:"append", text:"## Logic Checklist\n- Inverted conditions: double-check comparison operators in boolean-returning functions (== 0 vs == 1, < vs >)\n- Loop bounds: verify range() end — range(len(items)) not range(len(items)+1)\n- Loop direction: confirm forward vs reverse iteration matches the goal\n- Empty input: check list/string functions handle the empty case"},
-        ],
-        gate_ok:true, gate_delta:"+20%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Logic Checklist", c:"h2", new:true},
-          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li", new:true},
-          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li", new:true},
-          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li", new:true},
-          {t:"- Empty input: check list/string functions handle the empty case", c:"li", new:true},
-        ],
-        traces: [
-          {sev:"MOD", pass:true, q:"parity.py — is_even() check",
-           code:`def is_even(n):\n    return n % 2 == 1`,
-           review:"Inverted: n%2==1 is True for odd numbers. Fix: == 0",
-           why:"Caught — logic checklist matched"},
-          {sev:"MOD", pass:true, q:"search.py — find_max() loop",
-           code:`for i in range(1, len(items)+1): ...`,
-           review:"Off-by-one: range end is len(items)+1, IndexError on last item. Fix: range(1, len(items))",
-           why:"Caught — loop bounds rule matched"},
-          {sev:"MOD", pass:true, q:"math.py — factorial base case",
-           code:`if n == 0: return 0`,
-           review:"Wrong base case: factorial(0) must be 1. All results will be 0.",
-           why:"Still caught"},
-          {sev:"MOD", pass:false, q:"strings.py — vowel counter",
-           code:`if c in 'aeiou'  # misses uppercase`,
-           review:"Counts vowels using a generator. Clean implementation.",
-           why:"Still missed — case sensitivity not in rules yet"},
-          {sev:"MOD", pass:true, q:"sorting.py — is_sorted() check",
-           code:`if items[i] > items[i+1]: return True`,
-           review:"Inverted return: should return False when out-of-order found, not True.",
-           why:"Caught — inverted condition rule matched"},
-          {sev:"MOD", pass:true, q:"stats.py — average() guard",
-           code:`sum(nums) / len(nums)  # empty list → ZeroDivisionError`,
-           review:"Missing empty guard. Fix: if not nums: return None",
-           why:"Caught"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
-           code:`items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end.",
-           why:"Caught"},
-          {sev:"MOD", pass:true, q:"text.py — word reverser",
-           code:`for i in range(len(words)): result.append(words[i])`,
-           review:"Loop iterates forward — words appended in original order. Fix: range(len(words)-1, -1, -1) or words[::-1]",
-           why:"Caught — loop direction rule matched"},
-        ],
-        analysis: "Score improved 25% → 45%. Logic inversion, loop bounds, and direction errors now caught.\n\nOne training failure remains (case sensitivity). But the bigger issue: the validation set includes SQL injection, hardcoded secrets, race conditions, and command injection. None appear in training — the optimizer cannot write rules for patterns it never observed.\n\nProposing a narrow fix for case sensitivity, but the validation ceiling won't move.",
-        edits: [
-          {op:"append", text:"- String matching: check if case sensitivity is intentional — 'aeiou' misses uppercase vowels (use c.lower() in 'aeiou')"},
-          {op:"append", text:"- Division: functions dividing by a variable should guard against ZeroDivisionError"},
-        ],
-        gate_ok:true, gate_delta:"+2%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Logic Checklist", c:"h2"},
-          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li"},
-          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li"},
-          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li"},
-          {t:"- Empty input: check list/string functions handle the empty case", c:"li"},
-          {t:"- String matching: check if case sensitivity is intentional", c:"li", new:true},
-          {t:"- Division: guard against ZeroDivisionError on empty/zero input", c:"li", new:true},
-        ],
-        traces: [
-          {sev:"MOD", pass:true, q:"parity.py — is_even()",
-           code:`def is_even(n): return n % 2 == 1`,
-           review:"Inverted. Fix: == 0", why:"Caught"},
-          {sev:"MOD", pass:true, q:"search.py — find_max() loop",
-           code:`for i in range(1, len(items)+1): ...`,
-           review:"Off-by-one in range end.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"strings.py — vowel counter",
-           code:`if c in 'aeiou'  # misses uppercase`,
-           review:"Case sensitivity: add c.lower() or use 'aeiouAEIOU'",
-           why:"Caught — case sensitivity rule matched"},
-          {sev:"MOD", pass:true, q:"sorting.py — is_sorted()",
-           code:`if items[i] > items[i+1]: return True`,
-           review:"Inverted return on violation.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"stats.py — average()",
-           code:`sum(nums) / len(nums)`,
-           review:"Missing empty list guard.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"text.py — word reverser",
-           code:`for i in range(len(words)): result.append(words[i])`,
-           review:"Loop goes forward, not backward.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"math.py — factorial",
-           code:`if n == 0: return 0`,
-           review:"Wrong base case.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N",
-           code:`items[len(items)-n : len(items)+1]`,
-           review:"Off-by-one at slice end.", why:"Caught"},
-        ],
-        analysis: "All 8 training PRs now pass. Validation score: 47% — barely moved.\n\nThe training set has zero security or resource examples. The validation set is ~50% security PRs (SQL injection, hardcoded keys, command injection, resource leaks). These patterns are invisible to the optimizer because it never observed them failing.\n\nThe skill is now expert at Python logic bugs. It's blind to everything else. The bottleneck is the dataset, not the optimizer.",
-        edits: [{op:"append", text:"- Recursive functions: verify base case returns the identity value, not zero"}],
-        gate_ok:true, gate_delta:"+1%",
-      },
-      {
-        skill: [
-          {t:"# Code Reviewer", c:"h1"},
-          {t:""},
-          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
-          {t:""},
-          {t:"## Core Approach", c:"h2"},
-          {t:"- Read the full diff before commenting.", c:"li"},
-          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
-          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
-          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
-          {t:""},
-          {t:"## What to Look For", c:"h2"},
-          {t:"- Logic errors and edge cases", c:"li"},
-          {t:"- Security vulnerabilities", c:"li"},
-          {t:"- Performance issues", c:"li"},
-          {t:"- Readability and maintainability concerns", c:"li"},
-          {t:""},
-          {t:"## Logic Checklist", c:"h2"},
-          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li"},
-          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li"},
-          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li"},
-          {t:"- Empty input: check list/string functions handle the empty case", c:"li"},
-          {t:"- String matching: check if case sensitivity is intentional", c:"li"},
-          {t:"- Division: guard against ZeroDivisionError on empty/zero input", c:"li"},
-          {t:"- Recursive functions: verify base case returns the identity value", c:"li", new:true},
-        ],
-        traces: [
-          {sev:"MOD", pass:true, q:"parity.py — is_even()", code:`def is_even(n): return n % 2 == 1`, review:"Inverted condition.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"strings.py — vowel counter", code:`if c in 'aeiou'`, review:"Case sensitivity.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"sorting.py — is_sorted()", code:`if items[i] > items[i+1]: return True`, review:"Inverted return.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"stats.py — average()", code:`sum(nums) / len(nums)`, review:"Empty guard missing.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"text.py — word reverser", code:`for i in range(len(words)): result.append(words[i])`, review:"Forward loop, not reverse.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"math.py — factorial", code:`if n == 0: return 0`, review:"Wrong base case.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"list_utils.py — last N", code:`items[len(items)-n : len(items)+1]`, review:"Off-by-one.", why:"Caught"},
-          {sev:"MOD", pass:true, q:"search.py — find_max()", code:`for i in range(1, len(items)+1): ...`, review:"Off-by-one in range.", why:"Caught"},
-        ],
-        analysis: "All 8 training PRs pass. Validation score: 48% — plateaued completely.\n\nThe skill is now highly capable at Python logic bugs. But ~50% of the validation set is security issues (SQL injection, hardcoded keys, race conditions, command injection) that never appeared in any training trace.\n\nNo further edits will help. The ceiling is set by dataset coverage. Adding more epochs or edits will not raise the validation score.",
-        edits:[], gate_ok:true, gate_delta:null, final:true,
-      },
-    ]
+// ── Score timeline ─────────────────────────────────────────────────────────
+function initTimeline(epochs) {
+  const bars = document.getElementById('tl-bars');
+  const labels = document.getElementById('tl-labels');
+  bars.innerHTML = '';
+  labels.innerHTML = '';
+  for (let i = 0; i < epochs; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'tl-bar';
+    bar.id = `tl-bar-${i}`;
+    bar.innerHTML = `<div class="tl-fill" id="tl-fill-${i}" style="height:0%"></div>
+                     <span class="tl-pct" id="tl-pct-${i}">–</span>`;
+    bar.onclick = () => jumpToEpoch(i);
+    bars.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.className = 'tl-epoch-lbl';
+    lbl.textContent = `E${i}`;
+    labels.appendChild(lbl);
   }
-};
-
-let sc='good', ep=0;
-function setScenario(s){ sc=s; ep=0; render(); }
-function setEpoch(e){ ep=e; render(); }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function render(){
-  const data=D[sc], epoch=data.epochs[ep], poor=sc==='poor';
-
-  document.getElementById('btn-good').className='toggle-btn'+(sc==='good'?' active':'');
-  document.getElementById('btn-poor').className='toggle-btn'+(sc==='poor'?' active poor':'');
-  document.getElementById('ctrl-desc').textContent=data.desc;
-
-  document.getElementById('bars').innerHTML=data.scores.map((s,i)=>`
-    <div class="bar-group">
-      <div class="bar-track ${i===ep?'active':''} ${poor?'poor':''}" onclick="setEpoch(${i})">
-        <div class="bar-fill ${poor?'poor':''}" style="height:${Math.round(s*100)}%"></div>
-      </div>
-      <div class="bar-meta">
-        <span class="bar-name">Epoch ${i}</span>
-        <span class="bar-score" style="color:${poor?'var(--yellow)':'var(--blue)'}">${Math.round(s*100)}%</span>
-      </div>
-    </div>`).join('');
-
-  document.getElementById('tabs').innerHTML=data.scores.map((s,i)=>`
-    <button class="tab ${i===ep?'active':''} ${poor?'poor':''}" onclick="setEpoch(${i})">
-      Epoch ${i}${i===0?' · initial':''}${i===data.scores.length-1?' · final':''}</button>`).join('');
-
-  document.getElementById('skill-body').innerHTML=`<div class="skill-doc">${epoch.skill.map(l=>{
-    let c='sl';
-    if(l.new)c+=' added';
-    else if(l.c==='h1')c+=' h1';
-    else if(l.c==='h2')c+=' h2';
-    return `<span class="${c}">${esc(l.t)||' '}</span>`;
-  }).join('')}</div>`;
-
-  const passes=epoch.traces.filter(t=>t.pass).length, total=epoch.traces.length;
-  const tb=document.getElementById('trace-badge');
-  tb.textContent=`${passes}/${total} caught`;
-  tb.style.cssText=`font-size:11px;padding:2px 8px;border-radius:3px;background:${passes/total>0.6?'var(--green-bg)':'var(--red-bg)'};color:${passes/total>0.6?'var(--green)':'var(--red)'}`;
-
-  document.getElementById('traces-body').innerHTML=epoch.traces.map(t=>{
-    const sev=t.sev==='CRIT'?`<span class="badge crit">CRITICAL</span>`:t.sev==='MOD'?`<span class="badge mod">MODERATE</span>`:'';
-    return `<div class="trace">
-      <div class="trace-top">
-        <span class="badge ${t.pass?'pass':'fail'}">${t.pass?'CAUGHT':'MISSED'}</span>
-        ${sev}<span class="trace-q">${esc(t.q)}</span>
-      </div>
-      <div class="trace-code">${esc(t.code)}</div>
-      <div class="trace-review ${t.pass?'pass':'fail'}">${esc(t.review)}</div>
-      <div class="trace-why">${esc(t.why)}</div>
-    </div>`;
-  }).join('');
-
-  let html=`<div class="opt-sec"><div class="opt-sec-title">Optimizer Analysis</div>
-    <div class="opt-box">${esc(epoch.analysis).replace(/\n/g,'<br>')}</div></div>`;
-
-  if(epoch.edits&&epoch.edits.length>0){
-    html+=`<div class="opt-sec"><div class="opt-sec-title">Proposed Edits <span style="font-size:10px;color:var(--dim);margin-left:6px;">${epoch.edits.length}/3 slots used</span></div>
-      ${epoch.edits.map(e=>`<div class="edit-card">
-        <div class="edit-hd"><span class="op-tag ${e.op}">${e.op.toUpperCase()}</span>
-        <span style="font-size:11px;color:var(--muted);">to skill.md</span></div>
-        <div class="edit-body">${esc(e.text).replace(/\n/g,'<br>')}</div>
-      </div>`).join('')}</div>`;
-  }
-
-  html+=`<div class="opt-sec"><div class="opt-sec-title">Validation Gate</div>
-    ${epoch.final?`<div class="gate done"><span class="gate-icon">◎</span><div>
-        <div class="gate-main">Training complete — best_skill.md saved</div>
-        <div class="gate-sub">Final score: ${Math.round(data.scores[ep]*100)}%${poor?' (plateaued — dataset too narrow)':''}</div>
-      </div></div>`:`<div class="gate ok"><span class="gate-icon">✓</span><div>
-        <div class="gate-main">Accepted — validation improved ${epoch.gate_delta}</div>
-        <div class="gate-sub">Skill updated. Proceeding to epoch ${ep+1}.</div>
-      </div></div>`}
-  </div>`;
-
-  if(poor&&ep>=1){
-    html+=`<div class="warn-box"><strong>⚠ Dataset bottleneck:</strong> The optimizer sees SQL injection, hardcoded secrets, and race conditions failing on validation — but none appear in training traces. Without examples, it cannot write specific rules. Score plateaus at ${Math.round(data.scores[data.scores.length-1]*100)}% regardless of further training.</div>`;
-  }
-
-  document.getElementById('opt-body').innerHTML=html;
 }
-render();
+
+function updateTimeline(epoch, score) {
+  const fill = document.getElementById(`tl-fill-${epoch}`);
+  const pct = document.getElementById(`tl-pct-${epoch}`);
+  const bar = document.getElementById(`tl-bar-${epoch}`);
+  if (!fill) return;
+  const pctVal = Math.round(score * 100);
+  fill.style.height = pctVal + '%';
+  pct.textContent = pctVal + '%';
+  if (bar) bar.classList.toggle('active', true);
+}
+
+// ── Phase bar ──────────────────────────────────────────────────────────────
+function setPhase(phase, desc) {
+  ['rollout','reflect','select','gate'].forEach(p => {
+    const el = document.getElementById(`ps-${p}`);
+    if (!el) return;
+    el.classList.remove('active', 'done');
+    if (p === phase.toLowerCase()) el.classList.add('active');
+    else if (phaseOrder(p) < phaseOrder(phase.toLowerCase())) el.classList.add('done');
+  });
+  document.getElementById('phase-desc').textContent = desc || '';
+}
+
+function phaseOrder(p) {
+  return {rollout:0, reflect:1, select:2, gate:3}[p] ?? -1;
+}
+
+// ── Skill doc renderer ─────────────────────────────────────────────────────
+function renderSkill(lines) {
+  const body = document.getElementById('skill-body');
+  let lineNum = 0;
+  body.innerHTML = `<div class="skill-doc">${lines.map(l => {
+    lineNum++;
+    let cls = 'sl';
+    const text = l.text || '';
+    if (l.added) cls += ' added';
+    else if (text.startsWith('# ')) cls += ' h1';
+    else if (text.startsWith('## ')) cls += ' h2';
+    const prefix = l.added ? '<span class="added-prefix">+</span>' : '';
+    return `<div class="${cls}">
+      <span class="sl-num">${lineNum}</span>
+      <span class="sl-text">${prefix}${esc(text) || ' '}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function parseSkillLines(text, prevText) {
+  const lines = text.split('\n');
+  const prevLines = new Set((prevText || '').split('\n'));
+  return lines.map(t => ({ text: t, added: !prevLines.has(t) && t.trim() !== '' }));
+}
+
+// ── Trace renderer ─────────────────────────────────────────────────────────
+function addTrace(t, isVal) {
+  const body = document.getElementById('traces-body');
+  if (body.querySelector('.empty')) body.innerHTML = '';
+
+  const el = document.createElement('div');
+
+  if (isVal) {
+    el.className = 'val-trace';
+    const pct = document.getElementById(`tl-pct-${currentEpoch}`);
+    el.innerHTML = `
+      <span class="badge ${t.passed ? 'caught' : 'missed'}">${t.passed ? 'CAUGHT' : 'MISSED'}</span>
+      <span class="badge ${sevClass(t.sev)}">${t.sev}</span>
+      <span class="val-trace-title">${esc(t.title)}</span>
+    `;
+  } else {
+    el.className = 'trace';
+    const code = (t.code || '').split('\n').map(l =>
+      `<span class="ln">${esc(l)}</span>`).join('\n');
+    el.innerHTML = `
+      <div class="trace-top">
+        <span class="badge ${t.passed ? 'caught' : 'missed'}">${t.passed ? 'CAUGHT' : 'MISSED'}</span>
+        <span class="badge ${sevClass(t.sev)}">${t.sev}</span>
+        <span class="trace-title">${esc(t.title)}</span>
+      </div>
+      <div class="trace-code">${code}</div>
+      <div class="trace-review ${t.passed ? 'ok' : 'miss'}">${esc(t.review || '')}</div>
+      ${t.bug ? `<div class="trace-why">Bug: ${esc(t.bug)}</div>` : ''}
+    `;
+  }
+
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+function addRunningTrace(task) {
+  const body = document.getElementById('traces-body');
+  if (body.querySelector('.empty')) body.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'trace';
+  el.id = `trace-running-${task.task_id}`;
+  el.innerHTML = `
+    <div class="trace-top">
+      <span class="badge running">RUNNING</span>
+      <span class="trace-title">${esc(task.title)}</span>
+    </div>
+  `;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+function removeRunningTrace(id) {
+  const el = document.getElementById(`trace-running-${id}`);
+  if (el) el.remove();
+}
+
+function sevClass(sev) {
+  if (sev === 'CRIT') return 'crit';
+  if (sev === 'MOD') return 'mod';
+  return 'ok';
+}
+
+function updateTraceBadge() {
+  const badge = document.getElementById('trace-badge');
+  badge.textContent = `${tracePass}/${traceCount}`;
+  badge.style.background = tracePass / traceCount > 0.6
+    ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+  badge.style.color = tracePass / traceCount > 0.6
+    ? 'var(--green)' : 'var(--red)';
+  badge.style.border = '1px solid transparent';
+}
+
+// ── Optimizer panel ────────────────────────────────────────────────────────
+let streamEl = null;
+
+function startOptStream() {
+  const body = document.getElementById('opt-body');
+  if (body.querySelector('.empty')) body.innerHTML = '';
+
+  const sec = document.createElement('div');
+  sec.className = 'opt-sec';
+  sec.id = 'opt-stream-sec';
+  sec.innerHTML = `
+    <div class="opt-sec-title">Optimizer Analysis</div>
+    <div class="stream-box" id="stream-box"><span class="cursor"></span></div>
+  `;
+  body.appendChild(sec);
+  streamEl = document.getElementById('stream-box');
+  streamBuffer = '';
+  body.scrollTop = body.scrollHeight;
+}
+
+function appendToken(token) {
+  if (!streamEl) return;
+  streamBuffer += token;
+  // Show only the visible "prose" part before the JSON block
+  const jsonStart = streamBuffer.indexOf('{');
+  const display = jsonStart > 0 ? streamBuffer.slice(0, jsonStart) : streamBuffer;
+  streamEl.innerHTML = esc(display) + '<span class="cursor"></span>';
+  streamEl.parentElement.parentElement.scrollTop =
+    streamEl.parentElement.parentElement.scrollHeight;
+}
+
+function showEdits(edits, selected) {
+  const body = document.getElementById('opt-body');
+  if (!edits || !edits.length) return;
+
+  const sec = document.createElement('div');
+  sec.className = 'opt-sec';
+  sec.innerHTML = `<div class="opt-sec-title">Proposed Edits
+    <span style="font-size:9px;color:var(--muted);margin-left:6px;">
+      ${selected.length}/${edits.length} applied (lr=${currentLR})
+    </span>
+  </div>`;
+  edits.forEach((e, i) => {
+    const isSelected = i < selected.length;
+    const card = document.createElement('div');
+    card.className = 'edit-card';
+    if (!isSelected) card.style.opacity = '0.3';
+    card.innerHTML = `
+      <div class="edit-hd">
+        <span class="op-tag">${(e.op || 'APPEND').toUpperCase()}</span>
+        <span style="font-size:10px;color:var(--muted)">${isSelected ? '✓ selected' : '✗ deferred'}</span>
+      </div>
+      <div class="edit-body">${esc(e.text || '')}</div>
+    `;
+    sec.appendChild(card);
+  });
+  body.appendChild(sec);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showGate(data) {
+  const body = document.getElementById('opt-body');
+  const sec = document.createElement('div');
+  sec.className = 'opt-sec';
+
+  const pctNow = Math.round(data.val_score * 100);
+  const pctBaseline = epochHistory.length >= 2
+    ? Math.round(epochHistory[epochHistory.length - 2] * 100)
+    : 0;
+  const delta = pctNow - pctBaseline;
+  const deltaStr = delta >= 0 ? `+${delta}%` : `${delta}%`;
+
+  sec.innerHTML = `
+    <div class="opt-sec-title">Validation Gate</div>
+    <div class="gate-block ${data.accepted ? 'accepted' : 'rejected'}">
+      <div class="gate-icon">${data.accepted ? '✓' : '✗'}</div>
+      <div>
+        <div class="gate-main">${data.accepted ? 'Accepted — skill updated' : 'Rejected — reverted'}</div>
+        <div class="gate-sub">
+          ${data.accepted
+            ? `Validation improved ${deltaStr}. Proceeding to next epoch.`
+            : `Score did not improve. Keeping previous skill.`}
+        </div>
+        <div class="gate-scores">
+          <div class="gate-score-item">
+            <span class="gate-score-lbl">val score</span>
+            <span class="gate-score-val" style="color:${data.accepted ? 'var(--green)' : 'var(--red)'}">${pctNow}%</span>
+          </div>
+          <div class="gate-score-item">
+            <span class="gate-score-lbl">delta</span>
+            <span class="gate-score-val" style="color:${delta >= 0 ? 'var(--green)' : 'var(--red)'}">${deltaStr}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  body.appendChild(sec);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showDone(data) {
+  const body = document.getElementById('opt-body');
+  const banner = document.createElement('div');
+  banner.className = 'done-banner';
+  banner.innerHTML = `
+    <strong>Training complete.</strong><br>
+    Final validation score: <strong style="color:var(--green)">${Math.round(data.final_score * 100)}%</strong><br>
+    The optimized skill.md is shown in the left panel — ready to deploy to any agent.
+  `;
+  body.appendChild(banner);
+  body.scrollTop = body.scrollHeight;
+}
+
+// ── Event handler ──────────────────────────────────────────────────────────
+function handleEvent(e) {
+  let data;
+  try { data = JSON.parse(e.data); } catch { return; }
+
+  switch (data.type) {
+
+    case 'start': {
+      totalEpochs = data.epochs;
+      currentLR = data.lr;
+      initTimeline(data.epochs);
+      currentSkillLines = parseSkillLines(data.skill || '', '');
+      renderSkill(currentSkillLines);
+      document.getElementById('skill-badge').textContent = `${data.skill.split('\n').length} lines`;
+      traceCount = 0; tracePass = 0;
+      document.getElementById('traces-body').innerHTML = '';
+      document.getElementById('opt-body').innerHTML = '';
+      epochHistory = [];
+      break;
+    }
+
+    case 'epoch_start': {
+      currentEpoch = data.epoch;
+      const badge = document.getElementById('epoch-badge');
+      badge.textContent = `Epoch ${data.epoch + 1} / ${totalEpochs}`;
+      badge.style.display = '';
+      // Reset trace section for new epoch
+      document.getElementById('traces-body').innerHTML = '';
+      document.getElementById('opt-body').innerHTML = '';
+      traceCount = 0; tracePass = 0;
+      streamEl = null; reflectComplete = false;
+      // Update skill display: clear "added" highlights from previous epoch
+      currentSkillLines = (data.skill || '').split('\n').map(t => ({text:t, added:false}));
+      renderSkill(currentSkillLines);
+      break;
+    }
+
+    case 'phase': {
+      setPhase(data.phase, data.desc || '');
+      if (data.phase === 'REFLECT' && !data.skip) startOptStream();
+      break;
+    }
+
+    case 'task_start': {
+      addRunningTrace(data);
+      break;
+    }
+
+    case 'task_result': {
+      removeRunningTrace(data.id);
+      traceCount++;
+      if (data.passed) tracePass++;
+      addTrace(data, false);
+      updateTraceBadge();
+      break;
+    }
+
+    case 'rollout_done': {
+      const score = Math.round(data.score * 100);
+      document.getElementById('phase-desc').textContent =
+        `${data.passes}/${data.total} caught (${score}% train)`;
+      break;
+    }
+
+    case 'reflect_token': {
+      appendToken(data.token);
+      break;
+    }
+
+    case 'reflect_result': {
+      // Done streaming — finalize the stream box
+      if (streamEl) {
+        streamEl.innerHTML = esc(data.analysis || '');
+      }
+      reflectComplete = true;
+      break;
+    }
+
+    case 'select_result': {
+      // Build full list: selected edits first, then deferred placeholders
+      const allEdits = [...(data.selected || [])];
+      const deferred = Math.max(0, (data.total_proposed || 0) - allEdits.length);
+      for (let i = 0; i < deferred; i++)
+        allEdits.push({op:'append', text:'(deferred — beyond learning rate)'});
+      showEdits(allEdits, data.selected || []);
+
+      // Show new candidate skill
+      const prevText = currentSkillLines.map(l=>l.text).join('\n');
+      currentSkillLines = parseSkillLines(data.candidate_skill || prevText, prevText);
+      renderSkill(currentSkillLines);
+      const lines = (data.candidate_skill || '').split('\n');
+      document.getElementById('skill-badge').textContent = `${lines.length} lines`;
+      break;
+    }
+
+    case 'val_task': {
+      addTrace(data, true);
+      break;
+    }
+
+    case 'gate_result': {
+      epochHistory.push(data.val_score);
+      updateTimeline(data.epoch, data.val_score);
+      showGate(data);
+      if (data.new_skill) {
+        const prevText = currentSkillLines.map(l=>l.text).join('\n');
+        currentSkillLines = parseSkillLines(data.new_skill, prevText);
+        renderSkill(currentSkillLines);
+      }
+      break;
+    }
+
+    case 'epoch_done': {
+      // Finalize skill for this epoch
+      const finalLines = (data.skill || '').split('\n').map(t => ({text:t, added:false}));
+      currentSkillLines = finalLines;
+      break;
+    }
+
+    case 'done': {
+      setStatus('done');
+      setRunning(false);
+      setPhase('', 'Training complete');
+      document.getElementById('phase-desc').textContent =
+        `Done — final val score ${Math.round(data.final_score * 100)}%`;
+      showDone(data);
+      // Final skill display (no highlights)
+      const finalLines = (data.final_skill || '').split('\n').map(t => ({text:t, added:false}));
+      renderSkill(finalLines);
+      document.getElementById('skill-badge').textContent =
+        `${finalLines.length} lines • final`;
+      if (es) { es.close(); es = null; }
+      break;
+    }
+
+    case 'error': {
+      setStatus('error');
+      setRunning(false);
+      const body = document.getElementById('opt-body');
+      if (body.querySelector('.empty')) body.innerHTML = '';
+      const err = document.createElement('div');
+      err.className = 'error-banner';
+      err.textContent = data.message || 'Unknown error';
+      body.appendChild(err);
+      document.getElementById('phase-desc').textContent = 'Error — see optimizer panel';
+      if (es) { es.close(); es = null; }
+      break;
+    }
+  }
+}
+
+// ── Run / stop ─────────────────────────────────────────────────────────────
+function handleRun() {
+  if (running) {
+    stop();
+  } else {
+    start();
+  }
+}
+
+function start() {
+  const lr = document.getElementById('lr-slider').value;
+  const epochs = document.getElementById('ep-slider').value;
+  currentLR = parseInt(lr);
+  totalEpochs = parseInt(epochs);
+
+  setRunning(true);
+  setStatus('live');
+  setPhase('', 'Connecting…');
+
+  if (es) { es.close(); es = null; }
+
+  es = new EventSource(`http://localhost:8000/train?lr=${lr}&epochs=${epochs}`);
+  es.onmessage = handleEvent;
+  es.onerror = () => {
+    if (running) {
+      setStatus('error');
+      setRunning(false);
+      document.getElementById('phase-desc').textContent =
+        'Connection failed — is server.py running? (python server.py)';
+    }
+  };
+}
+
+function stop() {
+  if (es) { es.close(); es = null; }
+  setRunning(false);
+  setStatus('');
+  document.getElementById('phase-desc').textContent = 'Stopped';
+}
+
+function setRunning(val) {
+  running = val;
+  const btn = document.getElementById('run-btn');
+  btn.textContent = val ? '⏹ Stop' : '▶ Run Training';
+  btn.classList.toggle('running', val);
+  document.getElementById('lr-slider').disabled = val;
+  document.getElementById('ep-slider').disabled = val;
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot' + (s ? ' ' + s : '');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function jumpToEpoch(i) {
+  // future: jump to epoch view
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+initTimeline(4);
 </script>
 </body>
 </html>
