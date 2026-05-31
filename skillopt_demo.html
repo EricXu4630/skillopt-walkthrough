@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkillOpt — Interactive Demo</title>
+<title>SkillOpt — Code Reviewer Demo</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -15,14 +15,13 @@
 }
 body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:13px; line-height:1.5; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
 
-/* HEADER */
-.header { padding:12px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--surface); }
-.header h1 { font-size:15px; font-weight:600; }
-.header p { font-size:12px; color:var(--muted); margin-top:1px; }
-.header-tag { font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:3px 8px; color:var(--muted); }
+.header { padding:11px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--surface); }
+.header-left h1 { font-size:15px; font-weight:600; }
+.header-left p { font-size:11px; color:var(--muted); margin-top:1px; }
+.header-right { display:flex; align-items:center; gap:8px; }
+.source-link { font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:3px 8px; color:var(--blue); text-decoration:none; }
 
-/* CONTROLS */
-.controls { padding:10px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; flex-shrink:0; }
+.controls { padding:9px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; flex-shrink:0; }
 .ctrl-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
 .toggle { display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
 .toggle-btn { padding:5px 14px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; font-family:inherit; transition:all .15s; }
@@ -30,12 +29,11 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 .toggle-btn.active.poor { background:var(--yellow); color:#0d1117; }
 .ctrl-desc { font-size:12px; color:var(--muted); }
 
-/* SCORE */
-.score-row { padding:12px 24px; border-bottom:1px solid var(--border); flex-shrink:0; }
-.score-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; }
+.score-row { padding:10px 24px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.score-lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:7px; }
 .bars { display:flex; gap:8px; }
 .bar-group { flex:1; max-width:110px; display:flex; flex-direction:column; gap:4px; }
-.bar-track { height:44px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; cursor:pointer; transition:border-color .2s; }
+.bar-track { height:40px; background:var(--surface2); border:1px solid var(--border); border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; cursor:pointer; transition:border-color .2s; }
 .bar-track:hover { border-color:var(--muted); }
 .bar-track.active { border-color:var(--blue); }
 .bar-track.active.poor { border-color:var(--yellow); }
@@ -45,14 +43,12 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 .bar-name { font-size:11px; color:var(--muted); }
 .bar-score { font-size:12px; font-weight:600; }
 
-/* TABS */
 .tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; padding:0 24px; }
 .tab { padding:9px 16px; background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); cursor:pointer; font-size:13px; font-family:inherit; transition:all .15s; margin-bottom:-1px; }
 .tab:hover { color:var(--text); }
 .tab.active { color:var(--text); border-bottom-color:var(--blue); }
 .tab.active.poor { border-bottom-color:var(--yellow); }
 
-/* PANELS */
 .panels { flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; overflow:hidden; min-height:0; }
 .panel { border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
 .panel:last-child { border-right:none; }
@@ -60,32 +56,32 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 .panel-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
 .panel-body { flex:1; overflow-y:auto; }
 
-/* SKILL */
-.diff-legend { display:flex; gap:12px; padding:7px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
+.diff-legend { display:flex; gap:12px; padding:6px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
 .dl-item { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); }
 .dl-dot { width:8px; height:8px; border-radius:2px; }
-.skill-doc { font-family:'SF Mono','Cascadia Code','Fira Mono',monospace; font-size:12px; line-height:1.8; padding:12px 14px; }
+.skill-doc { font-family:'SF Mono','Cascadia Code','Fira Mono',monospace; font-size:11.5px; line-height:1.8; padding:12px 14px; }
 .sl { display:block; padding:0 6px; border-radius:3px; white-space:pre-wrap; position:relative; }
 .sl.h1 { color:var(--blue); font-weight:700; margin-top:4px; }
 .sl.h2 { color:var(--purple); font-weight:600; margin-top:6px; }
 .sl.added { background:rgba(63,185,80,.12); color:var(--green); padding-left:18px; }
 .sl.added::before { content:'+'; position:absolute; left:4px; color:var(--green); font-weight:700; }
 
-/* TRACES */
-.trace { border-bottom:1px solid var(--border); padding:11px 14px; }
+.trace { border-bottom:1px solid var(--border); padding:10px 14px; }
 .trace:hover { background:var(--surface); }
-.trace-top { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.trace-top { display:flex; align-items:center; gap:6px; margin-bottom:5px; flex-wrap:wrap; }
 .badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:3px; letter-spacing:.05em; flex-shrink:0; }
 .badge.pass { background:var(--green-bg); color:var(--green); }
 .badge.fail { background:var(--red-bg); color:var(--red); }
 .badge.sm { background:rgba(88,166,255,.12); color:var(--blue); }
-.trace-q { font-size:12.5px; font-weight:500; }
-.trace-sql { font-family:'SF Mono',monospace; font-size:11px; background:var(--surface2); border:1px solid var(--border); border-left:2px solid var(--dim); padding:5px 8px; border-radius:4px; color:var(--muted); margin-bottom:4px; line-height:1.5; }
-.trace-why { font-size:11px; font-style:italic; }
-.trace-why.fail { color:rgba(248,81,73,.8); }
-.trace-why.pass { color:rgba(63,185,80,.7); }
+.badge.crit { background:rgba(248,81,73,.12); color:var(--red); font-size:9px; }
+.badge.mod { background:rgba(227,179,65,.12); color:var(--yellow); font-size:9px; }
+.trace-q { font-size:12px; font-weight:500; }
+.trace-code { font-family:'SF Mono',monospace; font-size:10.5px; background:var(--surface2); border:1px solid var(--border); border-left:2px solid var(--dim); padding:5px 8px; border-radius:4px; color:var(--muted); margin-bottom:4px; line-height:1.6; white-space:pre; overflow-x:auto; }
+.trace-review { font-size:11.5px; margin-bottom:3px; line-height:1.5; }
+.trace-review.fail { color:rgba(248,81,73,.8); font-style:italic; }
+.trace-review.pass { color:rgba(63,185,80,.9); }
+.trace-why { font-size:10.5px; color:var(--dim); font-style:italic; }
 
-/* OPTIMIZER */
 .opt-sec { padding:11px 14px; border-bottom:1px solid var(--border); }
 .opt-sec-title { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:7px; }
 .opt-box { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:10px; font-size:12px; line-height:1.6; }
@@ -94,7 +90,6 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 .op-tag { font-size:10px; font-weight:700; padding:1px 5px; border-radius:3px; letter-spacing:.05em; }
 .op-tag.append { background:var(--green-bg); color:var(--green); }
 .op-tag.replace { background:var(--blue-bg); color:var(--blue); }
-.op-tag.delete { background:var(--red-bg); color:var(--red); }
 .edit-body { font-family:'SF Mono',monospace; font-size:11px; padding:8px 10px; line-height:1.5; }
 .gate { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:6px; }
 .gate.ok { background:var(--green-bg); border:1px solid rgba(63,185,80,.25); color:var(--green); }
@@ -104,7 +99,6 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 .gate-sub { font-size:11px; opacity:.8; margin-top:1px; }
 .warn-box { margin:12px; padding:11px; background:rgba(227,179,65,.08); border:1px solid rgba(227,179,65,.2); border-radius:6px; font-size:12px; color:var(--yellow); line-height:1.6; }
 
-/* SCROLLBAR */
 ::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -114,24 +108,27 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 <body>
 
 <div class="header">
-  <div>
-    <h1>SkillOpt — Interactive Demo</h1>
-    <p>Task: SQL query generation &nbsp;·&nbsp; The model is frozen — only the skill document evolves</p>
+  <div class="header-left">
+    <h1>SkillOpt — Code Reviewer Demo</h1>
+    <p>Starting from a real skill on skillsmp.com &nbsp;·&nbsp; frozen model, only skill.md evolves</p>
   </div>
-  <span class="header-tag">microsoft/SkillOpt</span>
+  <div class="header-right">
+    <a class="source-link" href="https://skillsmp.com/" target="_blank">skillsmp.com</a>
+    <a class="source-link" href="https://github.com/microsoft/SkillOpt" target="_blank">microsoft/SkillOpt</a>
+  </div>
 </div>
 
 <div class="controls">
   <span class="ctrl-label">Dataset</span>
   <div class="toggle">
-    <button class="toggle-btn active" id="btn-good" onclick="setScenario('good')">✓ Diverse (good)</button>
-    <button class="toggle-btn" id="btn-poor" onclick="setScenario('poor')">⚠ Narrow (poor)</button>
+    <button class="toggle-btn active" id="btn-good" onclick="setScenario('good')">Diverse (good)</button>
+    <button class="toggle-btn" id="btn-poor" onclick="setScenario('poor')">Narrow (poor)</button>
   </div>
-  <span class="ctrl-desc" id="ctrl-desc">10 query types across aggregation, dates, JOINs, subqueries, window functions</span>
+  <span class="ctrl-desc" id="ctrl-desc">8 PRs: SQL injection, hardcoded secrets, resource leaks, race conditions, command injection, logic errors</span>
 </div>
 
 <div class="score-row">
-  <div class="score-lbl">Validation accuracy across epochs</div>
+  <div class="score-lbl">Does the reviewer catch the critical bug? (validation accuracy)</div>
   <div class="bars" id="bars"></div>
 </div>
 
@@ -152,7 +149,7 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 
   <div class="panel">
     <div class="panel-hd">
-      <span class="panel-title">Agent Traces</span>
+      <span class="panel-title">PRs Reviewed This Epoch</span>
       <span class="badge sm" id="trace-badge"></span>
     </div>
     <div class="panel-body" id="traces-body"></div>
@@ -165,318 +162,549 @@ body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkM
 </div>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────────────────
-
 const D = {
   good: {
-    desc: "10 query types: aggregation, dates, JOINs, subqueries, window functions",
-    scores: [0.28, 0.54, 0.71, 0.85],
+    desc: "8 PRs across SQL injection, hardcoded secrets, resource leaks, race conditions, command injection, and logic errors",
+    scores: [0.25, 0.55, 0.75, 0.88],
     epochs: [
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
+          {t:""},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
+          {t:""},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
         ],
         traces: [
-          {pass:false, q:"Total revenue by month",             sql:"SELECT month, SUM(amount) FROM orders",                                              why:"No GROUP BY month — SUM collapses all rows to one"},
-          {pass:false, q:"Top 5 products by quantity sold",    sql:"SELECT product_name, COUNT(*) FROM order_items",                                     why:"Missing GROUP BY, ORDER BY DESC, and LIMIT 5"},
-          {pass:false, q:"Customers inactive for 30 days",     sql:"SELECT * FROM customers WHERE last_order < '2025-04-30'",                            why:"Hardcoded date — wrong every day it isn't that exact date"},
-          {pass:true,  q:"All orders placed today",            sql:"SELECT * FROM orders WHERE DATE(created_at) = CURRENT_DATE",                         why:"Dynamic date — correct"},
-          {pass:false, q:"Order count per customer",           sql:"SELECT customer_id, COUNT(*) FROM orders",                                           why:"COUNT(*) with no GROUP BY customer_id"},
-          {pass:false, q:"Products that have never been ordered", sql:"SELECT * FROM products WHERE id NOT IN (SELECT product_id FROM order_items)",      why:"NOT IN fails silently when subquery returns any NULLs"},
-          {pass:true,  q:"All orders over $500",               sql:"SELECT * FROM orders WHERE amount > 500",                                            why:"Simple WHERE filter — correct"},
-          {pass:true,  q:"Total customer count",               sql:"SELECT COUNT(*) FROM customers",                                                     why:"No grouping needed — correct"},
-          {pass:false, q:"Average order value per category",   sql:"SELECT category, AVG(amount) FROM orders JOIN products ON orders.product_id = products.id", why:"Missing GROUP BY category"},
-          {pass:false, q:"Orders placed last week",            sql:"SELECT * FROM orders WHERE created_at > '2025-05-18'",                               why:"Hardcoded date instead of CURRENT_DATE - INTERVAL '7 days'"},
+          {sev:"CRIT", pass:false,
+           q:"auth.py — user login query",
+           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
+           review:"The function queries the database for authentication. Works correctly for standard use.",
+           why:"Missed SQL injection — user input interpolated directly into query string"},
+          {sev:"CRIT", pass:false,
+           q:"stripe.py — payment API call",
+           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
+           review:"Makes an authenticated request to the Stripe API. Standard payment integration pattern.",
+           why:"Missed hardcoded production API key — will leak in version control"},
+          {sev:"CRIT", pass:false,
+           q:"config.py — JSON file reader",
+           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
+           review:"Reads and parses a JSON config file. Works correctly.",
+           why:"Missed resource leak — file handle never closed if json.load() raises"},
+          {sev:"CRIT", pass:false,
+           q:"metrics.py — request counter",
+           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
+           review:"Tracks incoming request count using a global counter. Works for usage monitoring.",
+           why:"Missed race condition — += not atomic under concurrent access"},
+          {sev:"CRIT", pass:false,
+           q:"utils.py — host ping check",
+           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
+           review:"Network utility to check if a host is reachable. Standard ping implementation.",
+           why:"Missed command injection — unsanitized host executes arbitrary shell commands"},
+          {sev:"MOD", pass:true,
+           q:"list_utils.py — last N items",
+           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one: slice end should be len(items), not len(items)+1. Returns n+1 items.",
+           why:"Caught — logic error is straightforward to spot"},
+          {sev:"OK", pass:true,
+           q:"math.py — safe division",
+           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
+           review:"No issues. Zero-division guard is correct and raises an appropriate exception.",
+           why:"Correct — no bugs present"},
+          {sev:"MOD", pass:false,
+           q:"users.py — profile name lookup",
+           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
+           review:"Returns the user's display name trimmed of whitespace. Straightforward lookup.",
+           why:"Missed KeyError risk — no guard if 'profile' or 'name' key is absent"},
         ],
-        analysis: "8 of 10 traces failed. Two patterns account for 7 failures:\n\n1. GROUP BY missing (4 cases) — every aggregate query dropped GROUP BY entirely.\n\n2. Hardcoded dates (3 cases) — literal date strings instead of dynamic CURRENT_DATE expressions.\n\nOne additional case: NOT IN subquery with NULL risk.\n\nProposing 3 targeted edits. Learning rate = 3.",
+        analysis: "6 of 8 reviews missed critical issues.\n\nDominant pattern: security vulnerabilities consistently skipped — SQL injection, hardcoded API key, command injection, and resource leak are all 'invisible' to the current skill.\n\nThe 'Security vulnerabilities' bullet in the skill is too vague. The model needs explicit patterns to match against — not just a category name.\n\nProposing 3 targeted security rules. Learning rate = 3.",
         edits: [
-          {op:"append", text:"Always GROUP BY every non-aggregated column in SELECT when using COUNT, SUM, AVG, MAX, or MIN."},
-          {op:"append", text:"Never hardcode date literals. Use CURRENT_DATE - INTERVAL 'N days' for relative time ranges."},
-          {op:"append", text:"For 'top N' queries: always add ORDER BY <metric> DESC LIMIT N."},
+          {op:"append", text:"## Security — Flag Immediately\n- SQL injection: user input in f-string or + concatenated into a query → require parameterized queries\n- Hardcoded secrets: API keys, passwords, tokens as string literals → move to environment variables\n- Command injection: user input passed to subprocess with shell=True → use list form, no shell=True\n- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → flag as RCE risk"},
         ],
-        gate_ok: true, gate_delta:"+26%",
+        gate_ok:true, gate_delta:"+30%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Aggregation Rules", c:"h2"},
-          {t:"- Always GROUP BY every non-aggregated column when using COUNT, SUM, AVG, MAX, or MIN.", c:"li", new:true},
-          {t:"- For 'top N' queries: ORDER BY <metric> DESC LIMIT N.", c:"li", new:true},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
           {t:""},
-          {t:"## Date Handling", c:"h2"},
-          {t:"- Never hardcode dates. Use CURRENT_DATE - INTERVAL 'N days' for relative ranges.", c:"li", new:true},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
+          {t:""},
+          {t:"## Security — Flag Immediately", c:"h2", new:true},
+          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li", new:true},
+          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li", new:true},
+          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li", new:true},
+          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li", new:true},
         ],
         traces: [
-          {pass:true,  q:"Total revenue by month",             sql:"SELECT month, SUM(amount) FROM orders GROUP BY month ORDER BY month",                why:"GROUP BY fixed"},
-          {pass:true,  q:"Top 5 products by quantity",         sql:"SELECT product_name, COUNT(*) FROM order_items GROUP BY product_name ORDER BY COUNT(*) DESC LIMIT 5", why:"GROUP BY + ORDER BY + LIMIT correct"},
-          {pass:true,  q:"Customers inactive 30 days",         sql:"SELECT * FROM customers WHERE last_order < CURRENT_DATE - INTERVAL '30 days'",       why:"Dynamic date fixed"},
-          {pass:true,  q:"Average order value per category",   sql:"SELECT category, AVG(amount) FROM orders JOIN products ON orders.product_id=products.id GROUP BY category", why:"GROUP BY fixed"},
-          {pass:true,  q:"Order count per customer",           sql:"SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id",                      why:"GROUP BY fixed"},
-          {pass:false, q:"Products that have never been ordered", sql:"SELECT * FROM products p LEFT JOIN order_items oi ON p.id=oi.product_id WHERE oi.id = NULL", why:"LEFT JOIN is right idea, but = NULL never matches — must use IS NULL"},
-          {pass:false, q:"Customers who placed more than 5 orders", sql:"SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id WHERE COUNT(*) > 5", why:"WHERE can't filter on aggregates — must use HAVING"},
-          {pass:false, q:"Running total of sales by day",      sql:"SELECT date, SUM(amount) FROM orders GROUP BY date",                                 why:"Gives daily sum, not running total — needs SUM() OVER (ORDER BY date)"},
-          {pass:true,  q:"All orders over $500",               sql:"SELECT * FROM orders WHERE amount > 500",                                            why:"Still correct"},
-          {pass:true,  q:"Orders from last 7 days",            sql:"SELECT * FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'",          why:"Date rule applied correctly"},
+          {sev:"CRIT", pass:true,
+           q:"auth.py — user login query",
+           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
+           review:"CRITICAL: SQL injection. User input interpolated into query — attacker can inject `' OR '1'='1`. Fix: db.execute('SELECT * FROM users WHERE name=? AND pass=?', (user, pwd))",
+           why:"Caught — SQL injection rule matched"},
+          {sev:"CRIT", pass:true,
+           q:"stripe.py — payment API call",
+           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
+           review:"CRITICAL: Hardcoded production API key in source. Will be committed to version control. Fix: STRIPE_KEY = os.environ['STRIPE_KEY']",
+           why:"Caught — hardcoded secrets rule matched"},
+          {sev:"CRIT", pass:false,
+           q:"config.py — JSON file reader",
+           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
+           review:"Reads and parses a JSON config file. Works correctly.",
+           why:"Still missed — no resource management rule yet"},
+          {sev:"CRIT", pass:false,
+           q:"metrics.py — request counter",
+           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
+           review:"Tracks incoming request count. Works for monitoring.",
+           why:"Still missed — no concurrency rule yet"},
+          {sev:"CRIT", pass:true,
+           q:"utils.py — host ping check",
+           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
+           review:"CRITICAL: Command injection. Unsanitized host passed to shell. Attacker can pass '8.8.8.8; rm -rf /'. Fix: subprocess.run(['ping', '-c', '1', host], capture_output=True)",
+           why:"Caught — command injection rule matched"},
+          {sev:"MOD", pass:true,
+           q:"list_utils.py — last N items",
+           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end. Returns n+1 items instead of n.",
+           why:"Still caught"},
+          {sev:"OK", pass:true,
+           q:"math.py — safe division",
+           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
+           review:"No issues. Correct guard.",
+           why:"Correct"},
+          {sev:"MOD", pass:false,
+           q:"users.py — profile name lookup",
+           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
+           review:"Returns the user's display name. Clean and readable.",
+           why:"Still missed — no defensive access rule yet"},
         ],
-        analysis: "Score improved 28% → 54%. GROUP BY and date issues resolved.\n\nThree new patterns emerged:\n\n1. IS NULL vs = NULL — LEFT JOIN approach correct but comparison broken.\n\n2. HAVING vs WHERE — WHERE can't filter on aggregated results.\n\n3. Window functions — running totals require SUM() OVER (ORDER BY ...), not GROUP BY.\n\nProposing 3 targeted edits.",
+        analysis: "Score improved 25% → 55%. Injection patterns (SQL, command) and hardcoded secrets now consistently caught.\n\nThree failure types remain:\n\n1. Resource leak (1 case): file opened without context manager — handle leaks on exception.\n\n2. Race condition (1 case): shared global counter incremented across threads without a lock.\n\n3. Defensive access (1 case): chained dict access with no guard against missing keys.\n\nAll three are distinct from security injections. Proposing 3 targeted rules.",
         edits: [
-          {op:"append", text:"To find records with no match: use LEFT JOIN ... WHERE right_table.id IS NULL. Never use = NULL."},
-          {op:"append", text:"Filter on aggregated values with HAVING, not WHERE. Example: HAVING COUNT(*) > 5."},
-          {op:"append", text:"Running totals: SUM(x) OVER (ORDER BY date). Rankings: RANK() OVER (PARTITION BY x ORDER BY y DESC)."},
+          {op:"append", text:"## Resource Management\n- File handles opened without 'with' context manager → flag as resource leak\n  Fix: with open(path) as f: ...\n- DB connections not closed in a finally block → flag"},
+          {op:"append", text:"## Concurrency\n- Shared mutable state (globals, class attrs) modified across threads → flag as race condition\n- Non-atomic ops (+=, -=, list.append) on shared vars without threading.Lock() → flag\n  Fix: _lock = threading.Lock() and 'with _lock: ...'"},
+          {op:"append", text:"## Defensive Access\n- Chained dict access (a['b']['c']) with no key guards → flag potential KeyError\n  Fix: user.get('profile', {}).get('name', '') or explicit try/except"},
         ],
-        gate_ok: true, gate_delta:"+17%",
+        gate_ok:true, gate_delta:"+20%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Aggregation Rules", c:"h2"},
-          {t:"- Always GROUP BY every non-aggregated column when using COUNT, SUM, AVG, MAX, or MIN.", c:"li"},
-          {t:"- For 'top N' queries: ORDER BY <metric> DESC LIMIT N.", c:"li"},
-          {t:"- Filter on aggregated values with HAVING, not WHERE. Example: HAVING COUNT(*) > 5.", c:"li", new:true},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
           {t:""},
-          {t:"## Date Handling", c:"h2"},
-          {t:"- Never hardcode dates. Use CURRENT_DATE - INTERVAL 'N days' for relative ranges.", c:"li"},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
           {t:""},
-          {t:"## JOINs & NULLs", c:"h2"},
-          {t:"- To find records with no match: LEFT JOIN ... WHERE right_table.id IS NULL.", c:"li", new:true},
+          {t:"## Security — Flag Immediately", c:"h2"},
+          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li"},
+          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li"},
+          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li"},
+          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li"},
           {t:""},
-          {t:"## Window Functions", c:"h2"},
-          {t:"- Running totals: SUM(x) OVER (ORDER BY date).", c:"li", new:true},
-          {t:"- Rankings: RANK() OVER (PARTITION BY x ORDER BY y DESC).", c:"li", new:true},
+          {t:"## Resource Management", c:"h2", new:true},
+          {t:"- File handles opened without 'with' context manager → resource leak", c:"li", new:true},
+          {t:"  Fix: with open(path) as f: ...", c:"li", new:true},
+          {t:"- DB connections not closed in finally block → flag", c:"li", new:true},
+          {t:""},
+          {t:"## Concurrency", c:"h2", new:true},
+          {t:"- Shared mutable state modified across threads → flag as race condition", c:"li", new:true},
+          {t:"- Non-atomic ops (+=, -=) on shared vars without threading.Lock() → flag", c:"li", new:true},
+          {t:""},
+          {t:"## Defensive Access", c:"h2", new:true},
+          {t:"- Chained dict access a['b']['c'] with no key guards → potential KeyError", c:"li", new:true},
+          {t:"  Fix: .get() with defaults or try/except", c:"li", new:true},
         ],
         traces: [
-          {pass:true,  q:"Products never ordered",             sql:"SELECT p.* FROM products p LEFT JOIN order_items oi ON p.id=oi.product_id WHERE oi.id IS NULL", why:"IS NULL fixed — correct"},
-          {pass:true,  q:"Customers with more than 5 orders",  sql:"SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id HAVING COUNT(*) > 5", why:"HAVING clause correct"},
-          {pass:true,  q:"Running total of sales by day",      sql:"SELECT date, amount, SUM(amount) OVER (ORDER BY date) AS running_total FROM orders", why:"Window function correct"},
-          {pass:true,  q:"Top 3 customers by revenue",         sql:"SELECT customer_id, SUM(amount) FROM orders GROUP BY customer_id ORDER BY SUM(amount) DESC LIMIT 3", why:"Correct"},
-          {pass:true,  q:"Revenue by customer, last 90 days",  sql:"SELECT customer_id, SUM(amount) FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '90 days' GROUP BY customer_id", why:"Combines date filter and aggregation correctly"},
-          {pass:true,  q:"Category revenue as % of total",     sql:"SELECT category, SUM(amount), SUM(amount)*100.0/SUM(SUM(amount)) OVER() FROM orders JOIN products ON orders.product_id=products.id GROUP BY category", why:"Window over aggregate — correct"},
-          {pass:true,  q:"Count orders per status",            sql:"SELECT status, COUNT(*) FROM orders GROUP BY status",                                why:"Correct"},
-          {pass:true,  q:"Orders from last 30 days",           sql:"SELECT * FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'",        why:"Correct"},
-          {pass:false, q:"Month-over-month revenue change",    sql:"SELECT month, SUM(amount), SUM(amount) - SUM(amount) FROM orders GROUP BY month",   why:"Subtracts itself — needs LAG() window function to access previous row"},
-          {pass:false, q:"Customers ranked by lifetime value (ties broken by signup date)", sql:"SELECT customer_id, SUM(amount), RANK() OVER (ORDER BY SUM(amount) DESC) FROM orders GROUP BY customer_id", why:"Can't use window function directly on an aggregate — needs CTE wrapper first"},
+          {sev:"CRIT", pass:true, q:"auth.py — user login query",
+           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
+           review:"CRITICAL: SQL injection via f-string. Use parameterized queries.",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"stripe.py — payment API call",
+           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
+           review:"CRITICAL: Hardcoded production key. Use os.environ['STRIPE_KEY'].",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"config.py — JSON file reader",
+           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
+           review:"Resource leak: file handle never closed. If json.load() raises, the handle leaks. Fix: with open(path) as f: return json.load(f)",
+           why:"Caught — resource management rule matched"},
+          {sev:"CRIT", pass:true, q:"metrics.py — request counter",
+           code:`request_count = 0\n\ndef handle_request():\n    global request_count\n    request_count += 1  # called from multiple threads`,
+           review:"Race condition: request_count += 1 is not atomic. Concurrent calls lose increments. Fix: add _lock = threading.Lock() and wrap with 'with _lock:'",
+           why:"Caught — concurrency rule matched"},
+          {sev:"CRIT", pass:true, q:"utils.py — host ping check",
+           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
+           review:"CRITICAL: Command injection. Fix: subprocess.run(['ping', '-c', '1', host], capture_output=True)",
+           why:"Caught"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
+           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end — returns n+1 items. Fix: items[-n:] or items[len(items)-n:]",
+           why:"Caught"},
+          {sev:"OK", pass:true, q:"math.py — safe division",
+           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
+           review:"No issues. Correct.",
+           why:"Correct"},
+          {sev:"MOD", pass:true, q:"users.py — profile name lookup",
+           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
+           review:"KeyError risk: 'profile' or 'name' may be missing. Fix: user.get('profile', {}).get('name', '').strip()",
+           why:"Caught — defensive access rule matched"},
         ],
-        analysis: "Score improved to 71%. Most prior issues resolved.\n\nTwo remaining patterns:\n\n1. LAG() for period-over-period comparisons — agent doesn't know how to access the previous row's value.\n\n2. Window over aggregate — need a CTE to separate the GROUP BY from the RANK().\n\nProposing 3 edits.",
+        analysis: "All 8 training PRs now reviewed correctly. Validation score: 75%.\n\nRemaining validation failures are subtle patterns not yet in the skill:\n- Timing attack: == comparison for secret tokens instead of hmac.compare_digest()\n- TOCTOU: os.path.exists() check before open() in concurrent code — not atomic\n\nProposing 2 refinement edits.",
         edits: [
-          {op:"append", text:"Period-over-period change: LAG(metric, 1) OVER (ORDER BY date) accesses the previous period's value."},
-          {op:"append", text:"When a window function needs to operate on aggregated values, wrap in a CTE first:\n  WITH agg AS (SELECT ..., SUM(x) AS total FROM ... GROUP BY ...)\n  SELECT *, RANK() OVER (ORDER BY total DESC) FROM agg"},
-          {op:"append", text:"Use CTEs (WITH clause) for multi-step logic instead of nested subqueries."},
+          {op:"append", text:"- Timing attack: == comparison for secrets/tokens → flag, use hmac.compare_digest()"},
+          {op:"append", text:"- TOCTOU: os.path.exists() check before open() in concurrent context → not atomic, use try/except FileNotFoundError instead"},
         ],
-        gate_ok: true, gate_delta:"+14%",
+        gate_ok:true, gate_delta:"+13%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Aggregation Rules", c:"h2"},
-          {t:"- Always GROUP BY every non-aggregated column when using COUNT, SUM, AVG, MAX, or MIN.", c:"li"},
-          {t:"- For 'top N' queries: ORDER BY <metric> DESC LIMIT N.", c:"li"},
-          {t:"- Filter on aggregated values with HAVING, not WHERE.", c:"li"},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
           {t:""},
-          {t:"## Date Handling", c:"h2"},
-          {t:"- Never hardcode dates. Use CURRENT_DATE - INTERVAL 'N days' for relative ranges.", c:"li"},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
           {t:""},
-          {t:"## JOINs & NULLs", c:"h2"},
-          {t:"- To find records with no match: LEFT JOIN ... WHERE right_table.id IS NULL.", c:"li"},
+          {t:"## Security — Flag Immediately", c:"h2"},
+          {t:"- SQL injection: user input in f-string or + concatenated into query → parameterized queries", c:"li"},
+          {t:"- Hardcoded secrets: API keys, passwords, tokens as string literals → env vars", c:"li"},
+          {t:"- Command injection: user input in shell=True subprocess → list form, no shell=True", c:"li"},
+          {t:"- Insecure deserialization: pickle.loads() / yaml.load() / eval() on untrusted data → RCE risk", c:"li"},
+          {t:"- Timing attack: == for secret comparison → use hmac.compare_digest()", c:"li", new:true},
+          {t:"- TOCTOU: os.path.exists() before open() in concurrent code → use try/except instead", c:"li", new:true},
           {t:""},
-          {t:"## Window Functions", c:"h2"},
-          {t:"- Running totals: SUM(x) OVER (ORDER BY date).", c:"li"},
-          {t:"- Rankings: RANK() OVER (PARTITION BY x ORDER BY y DESC).", c:"li"},
-          {t:"- Period-over-period: LAG(metric, 1) OVER (ORDER BY date).", c:"li", new:true},
+          {t:"## Resource Management", c:"h2"},
+          {t:"- File handles opened without 'with' context manager → resource leak", c:"li"},
+          {t:"  Fix: with open(path) as f: ...", c:"li"},
+          {t:"- DB connections not closed in finally block → flag", c:"li"},
           {t:""},
-          {t:"## Complex Queries (CTEs)", c:"h2"},
-          {t:"- Use CTEs when window functions must operate on aggregated values:", c:"li", new:true},
-          {t:"  WITH agg AS (SELECT ..., SUM(x) AS total FROM ... GROUP BY ...)", c:"li", new:true},
-          {t:"  SELECT *, RANK() OVER (ORDER BY total DESC) FROM agg", c:"li", new:true},
+          {t:"## Concurrency", c:"h2"},
+          {t:"- Shared mutable state modified across threads → flag as race condition", c:"li"},
+          {t:"- Non-atomic ops (+=, -=) on shared vars without threading.Lock() → flag", c:"li"},
+          {t:""},
+          {t:"## Defensive Access", c:"h2"},
+          {t:"- Chained dict access a['b']['c'] with no key guards → potential KeyError", c:"li"},
+          {t:"  Fix: .get() with defaults or try/except", c:"li"},
         ],
         traces: [
-          {pass:true,  q:"Month-over-month revenue change",    sql:"WITH mo AS (SELECT DATE_TRUNC('month',created_at) AS m, SUM(amount) AS rev FROM orders GROUP BY 1)\nSELECT m, rev, rev - LAG(rev,1) OVER (ORDER BY m) AS delta FROM mo", why:"CTE + LAG — correct"},
-          {pass:true,  q:"Customers ranked by lifetime value", sql:"WITH ltv AS (SELECT customer_id, SUM(amount) AS total FROM orders GROUP BY 1)\nSELECT *, RANK() OVER (ORDER BY total DESC) AS rnk FROM ltv", why:"CTE separates aggregation from window rank — correct"},
-          {pass:true,  q:"Week-over-week order count change",  sql:"WITH wk AS (SELECT DATE_TRUNC('week',created_at) AS w, COUNT(*) AS cnt FROM orders GROUP BY 1)\nSELECT w, cnt, cnt - LAG(cnt,1) OVER (ORDER BY w) AS delta FROM wk", why:"LAG pattern applied correctly"},
-          {pass:true,  q:"Products never ordered",             sql:"SELECT p.* FROM products p LEFT JOIN order_items oi ON p.id=oi.product_id WHERE oi.id IS NULL", why:"Correct"},
-          {pass:true,  q:"Category revenue as % of total",     sql:"SELECT category, SUM(amount), ROUND(SUM(amount)*100.0/SUM(SUM(amount)) OVER(),2) AS pct FROM orders JOIN products ON orders.product_id=products.id GROUP BY category", why:"Correct"},
-          {pass:true,  q:"Top 3 customers last 90 days",       sql:"SELECT customer_id, SUM(amount) FROM orders WHERE created_at >= CURRENT_DATE - INTERVAL '90 days' GROUP BY 1 ORDER BY 2 DESC LIMIT 3", why:"Correct"},
-          {pass:true,  q:"Running sales total by day",         sql:"SELECT DATE(created_at), SUM(SUM(amount)) OVER (ORDER BY DATE(created_at)) FROM orders GROUP BY 1 ORDER BY 1", why:"Correct"},
-          {pass:true,  q:"Customers with no orders in 60 days",sql:"SELECT c.* FROM customers c LEFT JOIN orders o ON c.id=o.customer_id AND o.created_at >= CURRENT_DATE - INTERVAL '60 days' WHERE o.id IS NULL", why:"LEFT JOIN with date on join condition — correct"},
-          {pass:true,  q:"Customers with more than 5 orders",  sql:"SELECT customer_id, COUNT(*) FROM orders GROUP BY 1 HAVING COUNT(*) > 5", why:"Correct"},
-          {pass:false, q:"Median order value by category",     sql:"SELECT category, AVG(amount) FROM orders JOIN products ON orders.product_id=products.id GROUP BY category", why:"AVG ≠ median — requires PERCENTILE_CONT, a dialect-specific function outside scope"},
+          {sev:"CRIT", pass:true, q:"auth.py — user login query",
+           code:`def login(user, pwd):\n    q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"\n    return db.execute(q)`,
+           review:"CRITICAL: SQL injection via f-string. Use parameterized queries.",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"stripe.py — payment API call",
+           code:`STRIPE_KEY = "sk_live_4xK2mLpQr8nZ..."\nrequests.post(url, headers={"Authorization": f"Bearer {STRIPE_KEY}"})`,
+           review:"CRITICAL: Hardcoded production key in source. Use env var.",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"config.py — JSON file reader",
+           code:`def read_config(path):\n    f = open(path, 'r')\n    data = json.load(f)\n    return data`,
+           review:"Resource leak: use 'with open(path) as f:'",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"metrics.py — request counter",
+           code:`request_count = 0\ndef handle_request():\n    global request_count\n    request_count += 1`,
+           review:"Race condition: += not atomic. Add threading.Lock().",
+           why:"Caught"},
+          {sev:"CRIT", pass:true, q:"utils.py — host ping check",
+           code:`def ping(host):\n    cmd = f"ping -c 1 {host}"\n    return subprocess.run(cmd, shell=True, capture_output=True)`,
+           review:"CRITICAL: Command injection. Use list form without shell=True.",
+           why:"Caught"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
+           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end. Fix: items[-n:]",
+           why:"Caught"},
+          {sev:"OK", pass:true, q:"math.py — safe division",
+           code:`def safe_divide(a, b):\n    if b == 0:\n        raise ValueError("Cannot divide by zero")\n    return a / b`,
+           review:"No issues.",
+           why:"Correct"},
+          {sev:"MOD", pass:true, q:"users.py — profile name lookup",
+           code:`def get_display_name(user):\n    return user['profile']['name'].strip()`,
+           review:"KeyError risk. Fix: user.get('profile', {}).get('name', '').strip()",
+           why:"Caught"},
         ],
-        analysis: "Score reached 85%. Training complete.\n\nOne remaining failure (median) requires PERCENTILE_CONT — a dialect-specific function not generalizable across SQL backends. The optimizer flagged this as out-of-scope.\n\nNo new edits proposed. Gate accepted. best_skill.md exported.",
-        edits: [],
-        gate_ok: true, gate_delta:null, final:true,
+        analysis: "All 8 training PRs correct. Validation score: 88%.\n\nRemaining 12% gap represents highly context-dependent patterns (e.g. timing attack in non-obvious comparison contexts, library-specific deserialization) that require broader training coverage.\n\nTraining complete. best_skill.md exported — ready to deploy to any code review agent.",
+        edits:[], gate_ok:true, gate_delta:null, final:true,
       },
     ]
   },
 
   poor: {
-    desc: "Only simple WHERE filter queries — no aggregates, JOINs, or date logic in training",
-    scores: [0.28, 0.35, 0.37, 0.38],
+    desc: "8 PRs — all simple Python logic errors. No security, resource, or threading patterns in training",
+    scores: [0.25, 0.45, 0.47, 0.48],
     epochs: [
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
+          {t:""},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
+          {t:""},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
         ],
         traces: [
-          {pass:false, q:"Find customer with email 'john@acme.com'", sql:"SELECT * FROM customers WHERE email LIKE 'john@acme.com'", why:"Used LIKE for exact email — should use ="},
-          {pass:true,  q:"Orders with status 'shipped'",        sql:"SELECT * FROM orders WHERE status = 'shipped'",                                     why:"Simple equality — correct"},
-          {pass:true,  q:"Products with price under $50",        sql:"SELECT * FROM products WHERE price < 50",                                          why:"Numeric comparison — correct"},
-          {pass:false, q:"Customer named 'Smith'",               sql:"SELECT * FROM customers WHERE name = 'Smith'",                                     why:"Should use LIKE '%Smith%' for partial name match"},
-          {pass:true,  q:"Orders from customer ID 42",           sql:"SELECT * FROM orders WHERE customer_id = 42",                                      why:"Correct"},
-          {pass:true,  q:"Products in category 'Electronics'",   sql:"SELECT * FROM products WHERE category = 'Electronics'",                            why:"Correct"},
-          {pass:false, q:"Order #1234 details",                  sql:"SELECT * FROM orders id = 1234",                                                   why:"Missing WHERE keyword — syntax error"},
-          {pass:true,  q:"All active customers",                 sql:"SELECT * FROM customers WHERE status = 'active'",                                  why:"Correct"},
-          {pass:true,  q:"Products with stock under 10",         sql:"SELECT * FROM products WHERE stock < 10",                                          why:"Correct"},
-          {pass:false, q:"Recent orders",                        sql:"SELECT * FROM orders LIMIT 10",                                                    why:"Ambiguous — no ORDER BY, arbitrary 10 rows"},
+          {sev:"MOD", pass:false, q:"parity.py — is_even() check",
+           code:`def is_even(n):\n    return n % 2 == 1  # always True for odd numbers`,
+           review:"Checks if a number is even using modulo. Looks correct.",
+           why:"Missed inverted condition — n%2==1 returns True for ODD numbers"},
+          {sev:"MOD", pass:false, q:"search.py — find_max() loop",
+           code:`def find_max(items):\n    max_val = items[0]\n    for i in range(1, len(items)+1):  # +1 causes IndexError on last element\n        if items[i] > max_val: max_val = items[i]\n    return max_val`,
+           review:"Iterates through items to find the maximum. Standard loop pattern.",
+           why:"Missed off-by-one — range overshoots, IndexError on last iteration"},
+          {sev:"MOD", pass:true, q:"math.py — factorial base case",
+           code:`def factorial(n):\n    if n == 0: return 0  # wrong: must be 1\n    return n * factorial(n-1)`,
+           review:"Base case returns 0 but should return 1 — factorial(0)=1 by definition. All results will be 0.",
+           why:"Caught — inverted base case is obvious"},
+          {sev:"MOD", pass:false, q:"strings.py — vowel counter",
+           code:`def count_vowels(s):\n    return sum(1 for c in s if c in 'aeiou')  # misses uppercase`,
+           review:"Counts vowels using a generator expression. Elegant and readable.",
+           why:"Missed case sensitivity — 'Hello' returns 1 instead of 2"},
+          {sev:"MOD", pass:false, q:"sorting.py — is_sorted() check",
+           code:`def is_sorted(items):\n    for i in range(len(items)-1):\n        if items[i] > items[i+1]:\n            return True  # wrong: should return False on violation\n    return False`,
+           review:"Iterates to check sort order. Logic looks reasonable.",
+           why:"Missed inverted return — returns True when out-of-order found"},
+          {sev:"MOD", pass:true, q:"stats.py — average() guard",
+           code:`def average(nums):\n    return sum(nums) / len(nums)  # ZeroDivisionError if empty`,
+           review:"Edge case: ZeroDivisionError when nums is empty. Add guard: if not nums: return None",
+           why:"Caught — empty input edge case spotted"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
+           code:`def last_n(items, n):\n    return items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end. Returns n+1 items instead of n.",
+           why:"Caught"},
+          {sev:"MOD", pass:false, q:"text.py — word reverser",
+           code:`def reverse_words(sentence):\n    words = sentence.split()\n    result = []\n    for i in range(len(words)):  # should iterate in reverse\n        result.append(words[i])\n    return ' '.join(result)`,
+           review:"Reverses words in a sentence using a loop. Looks correct.",
+           why:"Missed that loop goes forward not backward — returns unchanged sentence"},
         ],
-        analysis: "4 of 10 failed. Failures are inconsistent and narrow:\n\n- LIKE vs = confusion (2 cases, opposite directions)\n- Missing WHERE keyword (1 case)\n- Ambiguous input (1 case, no skill rule can fix)\n\nAll 10 queries are simple WHERE filters. There are no aggregates, JOINs, or date logic in this batch — the optimizer cannot learn rules for patterns it never sees.\n\nProposing 3 narrow fixes for what was observed.",
+        analysis: "5 of 8 missed. Failures are scattered across different logic error types:\n- Inverted conditions (2 cases)\n- Off-by-one in loop range (1 case)\n- Missing case sensitivity (1 case)\n- Loop direction wrong (1 case)\n\nAll 8 PRs are simple logic issues. Zero security, resource, or concurrency patterns appear in this batch — the optimizer cannot learn those rules from what it sees.\n\nProposing narrow logic checklist edits.",
         edits: [
-          {op:"append", text:"Use = for exact matches (email, ID, status). Use LIKE '%term%' for partial name searches."},
-          {op:"append", text:"Always include the WHERE keyword before filter conditions."},
-          {op:"append", text:"If a query is ambiguous (e.g. 'recent'), default to ORDER BY created_at DESC LIMIT 20."},
+          {op:"append", text:"## Logic Checklist\n- Inverted conditions: double-check comparison operators in boolean-returning functions (== 0 vs == 1, < vs >)\n- Loop bounds: verify range() end — range(len(items)) not range(len(items)+1)\n- Loop direction: confirm forward vs reverse iteration matches the goal\n- Empty input: check list/string functions handle the empty case"},
         ],
-        gate_ok: true, gate_delta:"+7%",
+        gate_ok:true, gate_delta:"+20%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Filter Rules", c:"h2"},
-          {t:"- Use = for exact matches. Use LIKE '%term%' for partial name searches.", c:"li", new:true},
-          {t:"- Always include the WHERE keyword before filter conditions.", c:"li", new:true},
-          {t:"- If a query is ambiguous, default to ORDER BY created_at DESC LIMIT 20.", c:"li", new:true},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
+          {t:""},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
+          {t:""},
+          {t:"## Logic Checklist", c:"h2", new:true},
+          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li", new:true},
+          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li", new:true},
+          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li", new:true},
+          {t:"- Empty input: check list/string functions handle the empty case", c:"li", new:true},
         ],
         traces: [
-          {pass:true,  q:"Customer with email 'john@acme.com'", sql:"SELECT * FROM customers WHERE email = 'john@acme.com'",                             why:"= fixed"},
-          {pass:true,  q:"Customer named 'Smith'",               sql:"SELECT * FROM customers WHERE name LIKE '%Smith%'",                                why:"LIKE fixed"},
-          {pass:true,  q:"Order #1234",                          sql:"SELECT * FROM orders WHERE id = 1234",                                             why:"WHERE keyword fixed"},
-          {pass:true,  q:"Recent orders",                        sql:"SELECT * FROM orders ORDER BY created_at DESC LIMIT 20",                           why:"Default ordering fixed"},
-          {pass:true,  q:"All cancelled orders",                 sql:"SELECT * FROM orders WHERE status = 'cancelled'",                                  why:"Correct"},
-          {pass:true,  q:"Products over $100",                   sql:"SELECT * FROM products WHERE price > 100",                                         why:"Correct"},
-          {pass:false, q:"Total revenue by month",               sql:"SELECT month, SUM(amount) FROM orders",                                            why:"GROUP BY still missing — no rule exists because it was never in training traces"},
-          {pass:false, q:"Top 5 products by sales",              sql:"SELECT product_name, COUNT(*) FROM order_items",                                   why:"Missing GROUP BY + ORDER BY + LIMIT — same gap"},
-          {pass:false, q:"Customers inactive 30 days",           sql:"SELECT * FROM customers WHERE last_order < '2025-04-30'",                          why:"Hardcoded date — no date rule exists (never trained on it)"},
-          {pass:false, q:"Products never ordered",               sql:"SELECT * FROM products WHERE id NOT IN (SELECT product_id FROM order_items)",       why:"NULL subquery issue — never seen in training"},
+          {sev:"MOD", pass:true, q:"parity.py — is_even() check",
+           code:`def is_even(n):\n    return n % 2 == 1`,
+           review:"Inverted: n%2==1 is True for odd numbers. Fix: == 0",
+           why:"Caught — logic checklist matched"},
+          {sev:"MOD", pass:true, q:"search.py — find_max() loop",
+           code:`for i in range(1, len(items)+1): ...`,
+           review:"Off-by-one: range end is len(items)+1, IndexError on last item. Fix: range(1, len(items))",
+           why:"Caught — loop bounds rule matched"},
+          {sev:"MOD", pass:true, q:"math.py — factorial base case",
+           code:`if n == 0: return 0`,
+           review:"Wrong base case: factorial(0) must be 1. All results will be 0.",
+           why:"Still caught"},
+          {sev:"MOD", pass:false, q:"strings.py — vowel counter",
+           code:`if c in 'aeiou'  # misses uppercase`,
+           review:"Counts vowels using a generator. Clean implementation.",
+           why:"Still missed — case sensitivity not in rules yet"},
+          {sev:"MOD", pass:true, q:"sorting.py — is_sorted() check",
+           code:`if items[i] > items[i+1]: return True`,
+           review:"Inverted return: should return False when out-of-order found, not True.",
+           why:"Caught — inverted condition rule matched"},
+          {sev:"MOD", pass:true, q:"stats.py — average() guard",
+           code:`sum(nums) / len(nums)  # empty list → ZeroDivisionError`,
+           review:"Missing empty guard. Fix: if not nums: return None",
+           why:"Caught"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N items",
+           code:`items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end.",
+           why:"Caught"},
+          {sev:"MOD", pass:true, q:"text.py — word reverser",
+           code:`for i in range(len(words)): result.append(words[i])`,
+           review:"Loop iterates forward — words appended in original order. Fix: range(len(words)-1, -1, -1) or words[::-1]",
+           why:"Caught — loop direction rule matched"},
         ],
-        analysis: "Score: 28% → 35%. Simple WHERE filters now mostly correct.\n\n4 new failures involve aggregation, date logic, and JOINs — patterns that never appeared in training traces. The optimizer sees these failures but has no prior examples to build specific rules from.\n\nProposing conservative edits — but they will be vague without concrete patterns to learn from.",
+        analysis: "Score improved 25% → 45%. Logic inversion, loop bounds, and direction errors now caught.\n\nOne training failure remains (case sensitivity). But the bigger issue: the validation set includes SQL injection, hardcoded secrets, race conditions, and command injection. None appear in training — the optimizer cannot write rules for patterns it never observed.\n\nProposing a narrow fix for case sensitivity, but the validation ceiling won't move.",
         edits: [
-          {op:"append", text:"For queries involving totals or counts, use appropriate SQL aggregation."},
-          {op:"append", text:"Be careful with date comparisons in WHERE clauses."},
+          {op:"append", text:"- String matching: check if case sensitivity is intentional — 'aeiou' misses uppercase vowels (use c.lower() in 'aeiou')"},
+          {op:"append", text:"- Division: functions dividing by a variable should guard against ZeroDivisionError"},
         ],
-        gate_ok: true, gate_delta:"+2%",
+        gate_ok:true, gate_delta:"+2%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Filter Rules", c:"h2"},
-          {t:"- Use = for exact matches. Use LIKE '%term%' for partial name searches.", c:"li"},
-          {t:"- Always include the WHERE keyword before filter conditions.", c:"li"},
-          {t:"- If a query is ambiguous, default to ORDER BY created_at DESC LIMIT 20.", c:"li"},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
           {t:""},
-          {t:"## General Guidance", c:"h2"},
-          {t:"- For queries involving totals or counts, use appropriate SQL aggregation.", c:"li", new:true},
-          {t:"- Be careful with date comparisons in WHERE clauses.", c:"li", new:true},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
+          {t:""},
+          {t:"## Logic Checklist", c:"h2"},
+          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li"},
+          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li"},
+          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li"},
+          {t:"- Empty input: check list/string functions handle the empty case", c:"li"},
+          {t:"- String matching: check if case sensitivity is intentional", c:"li", new:true},
+          {t:"- Division: guard against ZeroDivisionError on empty/zero input", c:"li", new:true},
         ],
         traces: [
-          {pass:true,  q:"Orders with status 'pending'",         sql:"SELECT * FROM orders WHERE status = 'pending'",                                    why:"Correct"},
-          {pass:true,  q:"Customer named 'Johnson'",             sql:"SELECT * FROM customers WHERE name LIKE '%Johnson%'",                               why:"Correct"},
-          {pass:true,  q:"Products under $25",                   sql:"SELECT * FROM products WHERE price < 25",                                          why:"Correct"},
-          {pass:true,  q:"Recent orders",                        sql:"SELECT * FROM orders ORDER BY created_at DESC LIMIT 20",                           why:"Correct"},
-          {pass:false, q:"Revenue by month",                     sql:"SELECT month, SUM(amount) FROM orders",                                            why:"Vague rule 'use aggregation' not actionable — still no GROUP BY"},
-          {pass:false, q:"Inactive customers last 60 days",      sql:"SELECT * FROM customers WHERE last_order < CURRENT_DATE",                          why:"Used CURRENT_DATE but wrong — needs CURRENT_DATE - INTERVAL '60 days'"},
-          {pass:true,  q:"All orders from customer 99",          sql:"SELECT * FROM orders WHERE customer_id = 99",                                      why:"Correct"},
-          {pass:false, q:"Top 10 products by sales",             sql:"SELECT product_name, SUM(quantity) FROM order_items",                              why:"Still missing GROUP BY + ORDER BY + LIMIT"},
-          {pass:true,  q:"Active products",                      sql:"SELECT * FROM products WHERE active = true",                                       why:"Correct"},
-          {pass:true,  q:"Order with ID 555",                    sql:"SELECT * FROM orders WHERE id = 555",                                              why:"Correct"},
+          {sev:"MOD", pass:true, q:"parity.py — is_even()",
+           code:`def is_even(n): return n % 2 == 1`,
+           review:"Inverted. Fix: == 0", why:"Caught"},
+          {sev:"MOD", pass:true, q:"search.py — find_max() loop",
+           code:`for i in range(1, len(items)+1): ...`,
+           review:"Off-by-one in range end.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"strings.py — vowel counter",
+           code:`if c in 'aeiou'  # misses uppercase`,
+           review:"Case sensitivity: add c.lower() or use 'aeiouAEIOU'",
+           why:"Caught — case sensitivity rule matched"},
+          {sev:"MOD", pass:true, q:"sorting.py — is_sorted()",
+           code:`if items[i] > items[i+1]: return True`,
+           review:"Inverted return on violation.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"stats.py — average()",
+           code:`sum(nums) / len(nums)`,
+           review:"Missing empty list guard.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"text.py — word reverser",
+           code:`for i in range(len(words)): result.append(words[i])`,
+           review:"Loop goes forward, not backward.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"math.py — factorial",
+           code:`if n == 0: return 0`,
+           review:"Wrong base case.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N",
+           code:`items[len(items)-n : len(items)+1]`,
+           review:"Off-by-one at slice end.", why:"Caught"},
         ],
-        analysis: "Score: 37% — essentially plateaued. WHERE-filter queries are now nearly 100% correct.\n\nThe validation set includes aggregation, date, and JOIN queries that never appeared in training. Vague rules like 'use appropriate aggregation' are not actionable — the model ignores them.\n\nThe optimizer is bottlenecked: it cannot write precise rules for patterns it has never seen fail with context. Dataset coverage is the limiting factor.",
-        edits: [
-          {op:"append", text:"When filtering by time period, use CURRENT_DATE minus the appropriate interval rather than a fixed date."},
-        ],
-        gate_ok: true, gate_delta:"+1%",
+        analysis: "All 8 training PRs now pass. Validation score: 47% — barely moved.\n\nThe training set has zero security or resource examples. The validation set is ~50% security PRs (SQL injection, hardcoded keys, command injection, resource leaks). These patterns are invisible to the optimizer because it never observed them failing.\n\nThe skill is now expert at Python logic bugs. It's blind to everything else. The bottleneck is the dataset, not the optimizer.",
+        edits: [{op:"append", text:"- Recursive functions: verify base case returns the identity value, not zero"}],
+        gate_ok:true, gate_delta:"+1%",
       },
       {
         skill: [
-          {t:"# SQL Query Assistant", c:"h1"},
+          {t:"# Code Reviewer", c:"h1"},
           {t:""},
-          {t:"Write SQL queries based on user requests.", c:"li"},
-          {t:"Use SELECT statements to retrieve data.", c:"li"},
+          {t:"Review code for bugs, security vulnerabilities, and quality issues.", c:"li"},
           {t:""},
-          {t:"## Filter Rules", c:"h2"},
-          {t:"- Use = for exact matches. Use LIKE '%term%' for partial name searches.", c:"li"},
-          {t:"- Always include the WHERE keyword before filter conditions.", c:"li"},
-          {t:"- If a query is ambiguous, default to ORDER BY created_at DESC LIMIT 20.", c:"li"},
+          {t:"## Core Approach", c:"h2"},
+          {t:"- Read the full diff before commenting.", c:"li"},
+          {t:"- Prioritize critical issues (security, correctness) over style.", c:"li"},
+          {t:"- Be specific: cite line numbers and propose fixes.", c:"li"},
+          {t:"- Explain *why* something is a problem, not just *what*.", c:"li"},
           {t:""},
-          {t:"## General Guidance", c:"h2"},
-          {t:"- For queries involving totals or counts, use appropriate SQL aggregation.", c:"li"},
-          {t:"- Be careful with date comparisons in WHERE clauses.", c:"li"},
-          {t:"- When filtering by time period, use CURRENT_DATE minus the appropriate interval.", c:"li", new:true},
+          {t:"## What to Look For", c:"h2"},
+          {t:"- Logic errors and edge cases", c:"li"},
+          {t:"- Security vulnerabilities", c:"li"},
+          {t:"- Performance issues", c:"li"},
+          {t:"- Readability and maintainability concerns", c:"li"},
+          {t:""},
+          {t:"## Logic Checklist", c:"h2"},
+          {t:"- Inverted conditions: check comparison operators in boolean-returning functions", c:"li"},
+          {t:"- Loop bounds: range(len(items)) not range(len(items)+1)", c:"li"},
+          {t:"- Loop direction: confirm forward vs reverse iteration matches the goal", c:"li"},
+          {t:"- Empty input: check list/string functions handle the empty case", c:"li"},
+          {t:"- String matching: check if case sensitivity is intentional", c:"li"},
+          {t:"- Division: guard against ZeroDivisionError on empty/zero input", c:"li"},
+          {t:"- Recursive functions: verify base case returns the identity value", c:"li", new:true},
         ],
         traces: [
-          {pass:true,  q:"Orders with status 'pending'",         sql:"SELECT * FROM orders WHERE status = 'pending'",                                    why:"Correct"},
-          {pass:true,  q:"Customer named 'Lee'",                 sql:"SELECT * FROM customers WHERE name LIKE '%Lee%'",                                  why:"Correct"},
-          {pass:false, q:"Revenue by month",                     sql:"SELECT month, SUM(amount) FROM orders",                                            why:"Still no GROUP BY — rule too vague to act on"},
-          {pass:true,  q:"Customers inactive 60 days",           sql:"SELECT * FROM customers WHERE last_order < CURRENT_DATE - INTERVAL '60 days'",     why:"Date rule marginally helped"},
-          {pass:false, q:"Top 5 products by sales",              sql:"SELECT product_name, COUNT(*) FROM order_items LIMIT 5",                           why:"Added LIMIT but still missing GROUP BY and ORDER BY"},
-          {pass:true,  q:"Products under $30",                   sql:"SELECT * FROM products WHERE price < 30",                                          why:"Correct"},
-          {pass:false, q:"Products never ordered",               sql:"SELECT * FROM products WHERE id NOT IN (SELECT product_id FROM order_items)",       why:"NULL subquery issue — never seen in training traces"},
-          {pass:true,  q:"Recent orders",                        sql:"SELECT * FROM orders ORDER BY created_at DESC LIMIT 20",                           why:"Correct"},
-          {pass:true,  q:"Order #777",                           sql:"SELECT * FROM orders WHERE id = 777",                                              why:"Correct"},
-          {pass:true,  q:"Active products",                      sql:"SELECT * FROM products WHERE active = true",                                       why:"Correct"},
+          {sev:"MOD", pass:true, q:"parity.py — is_even()", code:`def is_even(n): return n % 2 == 1`, review:"Inverted condition.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"strings.py — vowel counter", code:`if c in 'aeiou'`, review:"Case sensitivity.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"sorting.py — is_sorted()", code:`if items[i] > items[i+1]: return True`, review:"Inverted return.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"stats.py — average()", code:`sum(nums) / len(nums)`, review:"Empty guard missing.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"text.py — word reverser", code:`for i in range(len(words)): result.append(words[i])`, review:"Forward loop, not reverse.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"math.py — factorial", code:`if n == 0: return 0`, review:"Wrong base case.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"list_utils.py — last N", code:`items[len(items)-n : len(items)+1]`, review:"Off-by-one.", why:"Caught"},
+          {sev:"MOD", pass:true, q:"search.py — find_max()", code:`for i in range(1, len(items)+1): ...`, review:"Off-by-one in range.", why:"Caught"},
         ],
-        analysis: "Final score: 38%. Training complete.\n\nThe skill thoroughly learned WHERE filter patterns but remains stuck on aggregation, complex JOINs, and window functions — because these never appeared in training traces.\n\nConclusion: the dataset was the bottleneck. The optimizer worked correctly on what it was shown. It simply wasn't shown enough variety to generalize.",
-        edits: [],
-        gate_ok: true, gate_delta:null, final:true,
+        analysis: "All 8 training PRs pass. Validation score: 48% — plateaued completely.\n\nThe skill is now highly capable at Python logic bugs. But ~50% of the validation set is security issues (SQL injection, hardcoded keys, race conditions, command injection) that never appeared in any training trace.\n\nNo further edits will help. The ceiling is set by dataset coverage. Adding more epochs or edits will not raise the validation score.",
+        edits:[], gate_ok:true, gate_delta:null, final:true,
       },
     ]
   }
 };
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let sc = 'good', ep = 0;
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ─── RENDER ──────────────────────────────────────────────────────────────────
+let sc='good', ep=0;
 function setScenario(s){ sc=s; ep=0; render(); }
 function setEpoch(e){ ep=e; render(); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function render(){
-  const data = D[sc];
-  const epoch = data.epochs[ep];
-  const poor = sc==='poor';
+  const data=D[sc], epoch=data.epochs[ep], poor=sc==='poor';
 
-  // toggle buttons
-  document.getElementById('btn-good').className = 'toggle-btn' + (sc==='good' ? ' active' : '');
-  document.getElementById('btn-poor').className = 'toggle-btn' + (sc==='poor' ? ' active poor' : '');
-  document.getElementById('ctrl-desc').textContent = data.desc;
+  document.getElementById('btn-good').className='toggle-btn'+(sc==='good'?' active':'');
+  document.getElementById('btn-poor').className='toggle-btn'+(sc==='poor'?' active poor':'');
+  document.getElementById('ctrl-desc').textContent=data.desc;
 
-  // score bars
-  document.getElementById('bars').innerHTML = data.scores.map((s,i) => `
+  document.getElementById('bars').innerHTML=data.scores.map((s,i)=>`
     <div class="bar-group">
       <div class="bar-track ${i===ep?'active':''} ${poor?'poor':''}" onclick="setEpoch(${i})">
         <div class="bar-fill ${poor?'poor':''}" style="height:${Math.round(s*100)}%"></div>
@@ -485,97 +713,66 @@ function render(){
         <span class="bar-name">Epoch ${i}</span>
         <span class="bar-score" style="color:${poor?'var(--yellow)':'var(--blue)'}">${Math.round(s*100)}%</span>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 
-  // tabs
-  document.getElementById('tabs').innerHTML = data.scores.map((s,i) => `
+  document.getElementById('tabs').innerHTML=data.scores.map((s,i)=>`
     <button class="tab ${i===ep?'active':''} ${poor?'poor':''}" onclick="setEpoch(${i})">
-      Epoch ${i}${i===0?' · initial':''}${i===data.scores.length-1?' · final':''}
-    </button>
-  `).join('');
+      Epoch ${i}${i===0?' · initial':''}${i===data.scores.length-1?' · final':''}</button>`).join('');
 
-  // skill panel
-  document.getElementById('skill-body').innerHTML =
-    `<div class="skill-doc">${epoch.skill.map(line => {
-      let cls = 'sl';
-      if (line.new) cls += ' added';
-      else if (line.c === 'h1') cls += ' h1';
-      else if (line.c === 'h2') cls += ' h2';
-      return `<span class="${cls}">${esc(line.t) || ' '}</span>`;
-    }).join('')}</div>`;
+  document.getElementById('skill-body').innerHTML=`<div class="skill-doc">${epoch.skill.map(l=>{
+    let c='sl';
+    if(l.new)c+=' added';
+    else if(l.c==='h1')c+=' h1';
+    else if(l.c==='h2')c+=' h2';
+    return `<span class="${c}">${esc(l.t)||' '}</span>`;
+  }).join('')}</div>`;
 
-  // traces panel
-  const passes = epoch.traces.filter(t=>t.pass).length;
-  const total = epoch.traces.length;
-  const traceBadge = document.getElementById('trace-badge');
-  traceBadge.textContent = `${passes}/${total} pass`;
-  traceBadge.style.cssText = `font-size:11px;padding:2px 8px;border-radius:3px;background:${passes/total>0.6?'var(--green-bg)':'var(--red-bg)'};color:${passes/total>0.6?'var(--green)':'var(--red)'}`;
+  const passes=epoch.traces.filter(t=>t.pass).length, total=epoch.traces.length;
+  const tb=document.getElementById('trace-badge');
+  tb.textContent=`${passes}/${total} caught`;
+  tb.style.cssText=`font-size:11px;padding:2px 8px;border-radius:3px;background:${passes/total>0.6?'var(--green-bg)':'var(--red-bg)'};color:${passes/total>0.6?'var(--green)':'var(--red)'}`;
 
-  document.getElementById('traces-body').innerHTML = epoch.traces.map(t => `
-    <div class="trace">
+  document.getElementById('traces-body').innerHTML=epoch.traces.map(t=>{
+    const sev=t.sev==='CRIT'?`<span class="badge crit">CRITICAL</span>`:t.sev==='MOD'?`<span class="badge mod">MODERATE</span>`:'';
+    return `<div class="trace">
       <div class="trace-top">
-        <span class="badge ${t.pass?'pass':'fail'}">${t.pass?'PASS':'FAIL'}</span>
-        <span class="trace-q">${esc(t.q)}</span>
+        <span class="badge ${t.pass?'pass':'fail'}">${t.pass?'CAUGHT':'MISSED'}</span>
+        ${sev}<span class="trace-q">${esc(t.q)}</span>
       </div>
-      <div class="trace-sql">${esc(t.sql)}</div>
-      <div class="trace-why ${t.pass?'pass':'fail'}">${esc(t.why)}</div>
-    </div>
-  `).join('');
-
-  // optimizer panel
-  let html = '';
-
-  html += `<div class="opt-sec">
-    <div class="opt-sec-title">Optimizer Analysis</div>
-    <div class="opt-box">${esc(epoch.analysis).replace(/\n/g,'<br>')}</div>
-  </div>`;
-
-  if (epoch.edits.length > 0) {
-    html += `<div class="opt-sec">
-      <div class="opt-sec-title">Proposed Edits <span style="font-size:10px;color:var(--dim);margin-left:6px;">${epoch.edits.length}/3 slots used</span></div>
-      ${epoch.edits.map(e=>`
-        <div class="edit-card">
-          <div class="edit-hd">
-            <span class="op-tag ${e.op}">${e.op.toUpperCase()}</span>
-            <span style="font-size:11px;color:var(--muted);">to skill.md</span>
-          </div>
-          <div class="edit-body">${esc(e.text).replace(/\n/g,'<br>')}</div>
-        </div>
-      `).join('')}
+      <div class="trace-code">${esc(t.code)}</div>
+      <div class="trace-review ${t.pass?'pass':'fail'}">${esc(t.review)}</div>
+      <div class="trace-why">${esc(t.why)}</div>
     </div>`;
+  }).join('');
+
+  let html=`<div class="opt-sec"><div class="opt-sec-title">Optimizer Analysis</div>
+    <div class="opt-box">${esc(epoch.analysis).replace(/\n/g,'<br>')}</div></div>`;
+
+  if(epoch.edits&&epoch.edits.length>0){
+    html+=`<div class="opt-sec"><div class="opt-sec-title">Proposed Edits <span style="font-size:10px;color:var(--dim);margin-left:6px;">${epoch.edits.length}/3 slots used</span></div>
+      ${epoch.edits.map(e=>`<div class="edit-card">
+        <div class="edit-hd"><span class="op-tag ${e.op}">${e.op.toUpperCase()}</span>
+        <span style="font-size:11px;color:var(--muted);">to skill.md</span></div>
+        <div class="edit-body">${esc(e.text).replace(/\n/g,'<br>')}</div>
+      </div>`).join('')}</div>`;
   }
 
-  html += `<div class="opt-sec">
-    <div class="opt-sec-title">Validation Gate</div>
-    ${epoch.final ? `
-      <div class="gate done">
-        <span class="gate-icon">◎</span>
-        <div>
-          <div class="gate-main">Training complete — best_skill.md saved</div>
-          <div class="gate-sub">Final validation score: ${Math.round(data.scores[ep]*100)}%${poor?' (plateaued due to narrow dataset)':''}</div>
-        </div>
-      </div>
-    ` : `
-      <div class="gate ok">
-        <span class="gate-icon">✓</span>
-        <div>
-          <div class="gate-main">Accepted — validation improved ${epoch.gate_delta}</div>
-          <div class="gate-sub">Skill updated. Proceeding to epoch ${ep+1}.</div>
-        </div>
-      </div>
-    `}
+  html+=`<div class="opt-sec"><div class="opt-sec-title">Validation Gate</div>
+    ${epoch.final?`<div class="gate done"><span class="gate-icon">◎</span><div>
+        <div class="gate-main">Training complete — best_skill.md saved</div>
+        <div class="gate-sub">Final score: ${Math.round(data.scores[ep]*100)}%${poor?' (plateaued — dataset too narrow)':''}</div>
+      </div></div>`:`<div class="gate ok"><span class="gate-icon">✓</span><div>
+        <div class="gate-main">Accepted — validation improved ${epoch.gate_delta}</div>
+        <div class="gate-sub">Skill updated. Proceeding to epoch ${ep+1}.</div>
+      </div></div>`}
   </div>`;
 
-  if (poor && ep >= 1) {
-    html += `<div class="warn-box">
-      <strong>⚠ Dataset bottleneck:</strong> The optimizer can only write rules for failure patterns it observes in traces. Aggregation and JOIN failures exist in the validation set but never appear in training — so no specific rules are ever learned for them. Score plateaus at ${Math.round(data.scores[data.scores.length-1]*100)}% regardless of further training.
-    </div>`;
+  if(poor&&ep>=1){
+    html+=`<div class="warn-box"><strong>⚠ Dataset bottleneck:</strong> The optimizer sees SQL injection, hardcoded secrets, and race conditions failing on validation — but none appear in training traces. Without examples, it cannot write specific rules. Score plateaus at ${Math.round(data.scores[data.scores.length-1]*100)}% regardless of further training.</div>`;
   }
 
-  document.getElementById('opt-body').innerHTML = html;
+  document.getElementById('opt-body').innerHTML=html;
 }
-
 render();
 </script>
 </body>
