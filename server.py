@@ -49,7 +49,7 @@ TRAIN_TASKS = [
     q = f"SELECT * FROM users WHERE name='{user}' AND pass='{pwd}'"
     return db.execute(q)""",
         "bug": "SQL injection via f-string interpolation",
-        "keywords": ["sql injection", "parameterized", "injection", "f-string", "format string", "user input"],
+        "keywords": ["sql injection", "parameterized", "injection", "f-string", "format string"],
     },
     {
         "id": "stripe",
@@ -111,7 +111,7 @@ def handle_request():
         raise ValueError("Cannot divide by zero")
     return a / b""",
         "bug": None,
-        "keywords": ["no issue", "looks correct", "lgtm", "no bug", "correct", "fine"],
+        "keywords": [],  # no-bug task: pass/fail determined by format + verdict only
     },
     {
         "id": "profile",
@@ -167,50 +167,110 @@ VAL_TASKS = [
 ]
 
 # ── Skill document ────────────────────────────────────────────────────────────
+# Deliberately sparse: no output format guidance, no checklist.
+# The optimizer's job is to discover and append what's missing.
 
 INITIAL_SKILL = """# Code Reviewer
 
-Review submitted code for bugs, security vulnerabilities, and correctness issues.
-
-## Approach
-- Read the full code carefully before commenting
-- Prioritize critical issues (security, data loss) over style
-- Be specific: name the exact problem and suggest how to fix it
-- If the code is correct, say so clearly
+Review the provided code and report any issues.
 """
 
 AGENT_SYSTEM_TEMPLATE = "{skill}"
 
-OPTIMIZER_SYSTEM = """You are an expert code review skill optimizer. You receive a skill.md document used by a code review agent, plus a set of failed reviews (cases where the agent missed real bugs).
+# ── Scoring ───────────────────────────────────────────────────────────────────
+# Two-component score:
+#   1. FORMAT (60%) — must use the structured headers from the Gemini code-reviewer skill
+#   2. BUG DETECTION (40%) — must identify the actual bug
+#
+# This ensures the initial sparse skill genuinely fails: Haiku catches bugs just
+# fine on its own, but won't produce the structured format without explicit guidance.
+# After one REFLECT cycle the optimizer adds the format template and score jumps.
 
-Your job: propose targeted edits to improve the skill document so the agent will catch these patterns in the future.
+FORMAT_KEYWORDS = [
+    "## summary",       # Section H2 — overview paragraph
+    "**critical**",     # Bold findings header
+    "**improvements**", # Bold improvements header
+    "## conclusion",    # Section H2 — verdict block
+    "request changes",  # Required verdict option
+    "**verdict**",      # Bold verdict marker
+]
+
+def score_task(review: str, task: dict) -> dict:
+    """Returns pass/fail plus breakdown explaining why."""
+    rv = review.lower()
+
+    # Format compliance
+    format_hits = sum(1 for kw in FORMAT_KEYWORDS if kw in rv)
+    format_score = format_hits / len(FORMAT_KEYWORDS)
+
+    # Bug detection
+    if task["bug"] is None:
+        # No-bug task: correct verdict is "Approved" — check format includes it
+        bug_caught = "approved" in rv
+        bug_desc = "correctly identifies no bug and says Approved"
+    else:
+        bug_caught = any(kw in rv for kw in task["keywords"])
+        bug_desc = task["bug"]
+
+    combined = 0.6 * format_score + 0.4 * (1.0 if bug_caught else 0.0)
+    passed = combined >= 0.65
+
+    fail_reasons = []
+    if not bug_caught:
+        if task["bug"] is None:
+            fail_reasons.append("missed verdict: should say 'Approved' for correct code")
+        else:
+            fail_reasons.append(f"missed bug: did not identify '{task['bug']}'")
+    if format_score < 0.5:
+        fail_reasons.append(
+            "format non-compliant: must use headers "
+            "## Summary / **Critical** / **Improvements** / ## Conclusion / **Verdict**: Request Changes | Approved"
+        )
+
+    return {
+        "passed": passed,
+        "format_score": round(format_score, 2),
+        "bug_caught": bug_caught,
+        "combined": round(combined, 2),
+        "fail_reasons": fail_reasons,
+    }
+
+
+# ── Optimizer prompt ──────────────────────────────────────────────────────────
+
+OPTIMIZER_SYSTEM = """You are an expert code review skill optimizer. You receive a skill.md document and failed reviews, each with an explicit failure reason.
+
+Your job: propose targeted edits to the skill document so the agent passes these cases.
+
+There are two failure types:
+1. "missed bug" — the agent did not identify the specific vulnerability. Add an explicit detection pattern.
+2. "format non-compliant" — the agent did not use the required structured output format. Add the format template.
+
+Required review format (for reference when proposing format edits):
+  ## Summary
+  [one-paragraph overview]
+
+  ## Findings
+  **Critical**: [critical bugs, security issues — or "None"]
+  **Improvements**: [code quality suggestions — or "None"]
+
+  ## Conclusion
+  **Verdict**: Request Changes | Approved
 
 Output a JSON object with EXACTLY this structure:
 {
-  "analysis": "2-3 sentences identifying the pattern across these failures",
+  "analysis": "2-3 sentences identifying the dominant failure pattern and what edit will fix it",
   "edits": [
-    {"op": "append", "text": "## Section Title\\n- Specific actionable rule: pattern → fix"},
-    {"op": "append", "text": "- Another rule on a new line"}
+    {"op": "append", "text": "## Section\\n- Specific actionable rule or the full format template"}
   ]
 }
 
-Rules for good edits:
-- Write SPECIFIC patterns with SPECIFIC fixes (e.g. "f-string in SQL query → parameterized query")
-- Each edit.text is a markdown block to append to the skill doc
-- Group related rules under a section header (## Security, ## Resources, etc.)
-- Maximum L edits (specified in the prompt)
-- Focus on the common pattern across all failures, not edge cases
+Rules:
+- If most failures are format-related, your top edit should add the full output format template
+- If most failures are bug-related, add specific detection rules (e.g. "f-string in SQL → parameterized")
+- Be SPECIFIC and ACTIONABLE — vague rules don't help the agent
+- Maximum L edits (specified in the prompt); focus on highest-impact changes first
 """
-
-
-# ── Scoring ───────────────────────────────────────────────────────────────────
-
-def score(review: str, task: dict) -> bool:
-    """Keyword-match scoring: did the review catch the bug?"""
-    if task["bug"] is None:
-        return True  # No bug — always pass (we don't penalize false negatives here)
-    review_lower = review.lower()
-    return any(kw in review_lower for kw in task["keywords"])
 
 
 # ── Agent + optimizer calls ───────────────────────────────────────────────────
@@ -219,17 +279,17 @@ async def run_agent(skill: str, task: dict) -> dict:
     """Run the frozen agent on one task. Returns the trace result."""
     client = anthropic.AsyncAnthropic(api_key=API_KEY)
 
+    # Neutral prompt — no format hints, so format must come from the skill
     prompt = (
-        f"Review this code for bugs or security issues:\n\n"
+        f"Please review this code change:\n\n"
         f"File: {task['title']}\n\n"
-        f"```python\n{task['code']}\n```\n\n"
-        f"What issues do you see, if any? Be specific."
+        f"```python\n{task['code']}\n```"
     )
 
     try:
         msg = await client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=350,
+            max_tokens=400,
             system=skill,
             messages=[{"role": "user", "content": prompt}],
         )
@@ -237,7 +297,8 @@ async def run_agent(skill: str, task: dict) -> dict:
     except Exception as e:
         review = f"[agent error: {e}]"
 
-    passed = score(review, task)
+    result = score_task(review, task)
+
     return {
         "id": task["id"],
         "title": task["title"],
@@ -245,7 +306,11 @@ async def run_agent(skill: str, task: dict) -> dict:
         "code": task["code"],
         "bug": task["bug"],
         "review": review,
-        "passed": passed,
+        "passed": result["passed"],
+        "format_score": result["format_score"],
+        "bug_caught": result["bug_caught"],
+        "combined": result["combined"],
+        "fail_reasons": result["fail_reasons"],
     }
 
 
@@ -256,10 +321,11 @@ async def stream_optimizer(skill: str, failures: list[dict], lr: int) -> AsyncGe
     failure_text = ""
     for i, f in enumerate(failures, 1):
         failure_text += f"\n### Failure {i}: {f['title']}\n"
-        failure_text += f"Bug present: {f['bug']}\n"
+        failure_text += f"Bug present: {f['bug'] or 'None (correct code)'}\n"
+        failure_text += f"Failure reason: {'; '.join(f['fail_reasons'])}\n"
         failure_text += f"Code:\n```python\n{f['code']}\n```\n"
         truncated = f['review'][:500] + ("..." if len(f['review']) > 500 else "")
-        failure_text += f"Agent's review (missed the bug):\n{truncated}\n"
+        failure_text += f"Agent's actual review:\n{truncated}\n"
 
     user = (
         f"## Current Skill\n```\n{skill}\n```\n\n"
