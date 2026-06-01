@@ -482,7 +482,7 @@ input[type=range]::-webkit-slider-thumb{
   <!-- CENTER: traces -->
   <div class="panel">
     <div class="panel-hd">
-      <span class="panel-title">PRs Reviewed</span>
+      <span class="panel-title">Deals Qualified</span>
       <span class="panel-badge" id="trace-badge"
             style="background:var(--surface);border:1px solid var(--border);color:var(--muted);">
         –/–
@@ -491,7 +491,7 @@ input[type=range]::-webkit-slider-thumb{
     <div class="panel-body" id="traces-body">
       <div class="empty">
         <div class="empty-icon">🔍</div>
-        <div class="empty-text">Agent reviews will stream in here as each PR is processed</div>
+        <div class="empty-text">Agent assessments will stream in here as each deal is processed</div>
       </div>
     </div>
   </div>
@@ -625,7 +625,7 @@ function addTrace(t, isVal) {
       </div>
       <div class="trace-code">${code}</div>
       <div class="trace-review ${t.passed ? 'ok' : 'miss'}">${esc(t.review || '')}</div>
-      ${t.bug ? `<div class="trace-why">Bug: ${esc(t.bug)}</div>` : ''}
+      ${t.bug ? `<div class="trace-why">MEDDIC Gap: ${esc(t.bug)}</div>` : ''}
     `;
   }
 
