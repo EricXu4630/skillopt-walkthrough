@@ -21,7 +21,7 @@ from typing import AsyncGenerator
 import anthropic
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 # ── App setup ────────────────────────────────────────────────────────────────
 
@@ -564,6 +564,11 @@ async def training_loop(lr: int, epochs: int) -> AsyncGenerator[str, None]:
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+
+@app.get("/")
+async def index():
+    return FileResponse("skillopt_demo.html")
+
 
 @app.get("/train")
 async def train(lr: int = 3, epochs: int = 4):

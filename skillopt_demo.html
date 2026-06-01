@@ -955,7 +955,7 @@ function start() {
 
   if (es) { es.close(); es = null; }
 
-  es = new EventSource(`http://localhost:8000/train?lr=${lr}&epochs=${epochs}`);
+  es = new EventSource(`/train?lr=${lr}&epochs=${epochs}`);
   es.onmessage = handleEvent;
   es.onerror = () => {
     if (running) {
